@@ -96,11 +96,18 @@ if __name__=='__main__':
         
     corpus_file=sys.argv[4]
     thetas=open(sys.argv[5]).readlines()
+    
+    print "corpus file: ", corpus_file
+    print "topic file: ", sys.argv[5]
     counter=0
     
     for l in open(corpus_file):
         if len(l.split())>0:
             #print counter, len(thetas)
+            if counter>=len(thetas):
+                print 'error: topic file lenght does not match corpus file. Are you sure ', sys.argv[5], 'is the right file?'
+                exit()
+            
             theta=thetas[counter]
             f.write(l)
             f.write(theta)
