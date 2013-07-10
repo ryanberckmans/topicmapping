@@ -1,0 +1,26 @@
+# use glob syntax
+syntax: glob
+
+# python cruft
+*.pyc
+
+# emacs cruft
+*~
+
+# aspell cruft
+*.bak
+
+# latex cruft
+*.aux
+*.blg
+*.dvi
+*.log
+*.synctex.gz
+
+# Mac stuff
+*.DS_Store
+
+# binaries
+a.out
+
+# miscellanea
