@@ -2,7 +2,7 @@
 
 
 #include "infomap.h"
-
+#include <stdlib.h>     /* atoi */
 
 unsigned stou(char *s){
     return strtoul(s,(char **)NULL,10);
@@ -15,12 +15,12 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent, const do
 
 #include "infomap_utilities.cpp"
 
-
+/*
 double get_infomap_partition(int Ntrials, int random_seed, \
                           map<int,map<int,double> > & Links, \
                           deque<int> & memberships, bool verbose, const double & convergence_precision ) {
     
-    /*
+    ////
      this function takes 
      Links
      the graph in the 
@@ -31,7 +31,7 @@ double get_infomap_partition(int Ntrials, int random_seed, \
      which optimizes the code length
      the function returns the 
      relative gain in code length
-     */
+     * /
     
     memberships.clear();
     
@@ -134,6 +134,45 @@ double get_infomap_partition(int Ntrials, int random_seed, \
 }
 
 
+*/
+
+bool separate_strings_tree_file(string &b, deque<string> & v) {		
+    
+	
+	
+	v.clear();
+	string s1;
+	
+	for(int i=0; i<int(b.size()); i++) {
+		
+		
+		if(b[i]==' ' || b[i]=='\t' || b[i]=='\n' || b[i]==',' || b[i]==':' || b[i]=='"') {
+			
+			if(s1.size()>0)
+				v.push_back(s1);
+            
+			s1.clear();
+            
+            
+		} else
+			s1.push_back(b[i]);
+		
+		
+		if(i==int(b.size())-1) {
+            
+            
+			if(s1.size()>0)
+				v.push_back(s1);			
+			s1.clear();
+            
+            
+		}
+        
+	}
+    
+	return true;
+}
+
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             deque<int> links1, deque<int> links2,
                                             const deque<double> & weights,
@@ -160,8 +199,6 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
         return 0.;
     }
     
-    //cout<<"links"<<endl;
-    //RANGE_loop(i, links1) cout<<links1[i]<<" "<<links2[i]<<" "<<weights[i]<<endl;
     
     // relabelling 
     mapii old_labels_new_labels;
@@ -179,6 +216,8 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
         links2[i]=old_labels_new_labels[n2];
     }
     
+    //cout<<"----------------------------"<<endl;
+    //prints(old_labels_new_labels);
     // getting Links in map format
     map<int, map<int, double> > Links;
     for(unsigned int i=0; i<links1.size(); i++) {
@@ -198,24 +237,58 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
         }
         Links[links1[i]][links2[i]]+=weights[i];
         Links[links2[i]][links1[i]]+=weights[i];
+
     }
-        
-    // getting the partition
-    DI memberships;
-    double code_length_relgain = get_infomap_partition(Ntrials, random_seed, Links, memberships, 
-                                                       verbose, convergence_precision);
 
     // back dictionary
     mapii new_labels_old_labels;
     IT_loop(mapii, itm, old_labels_new_labels) new_labels_old_labels[itm->second]=itm->first;
     
-    // setting memberships with original labels
-    RANGE_loop(i, memberships) {
-        hard_memberships[new_labels_old_labels[i]] = memberships[i];
-    }
     
-    return code_length_relgain;
-        
+    // printing network
+    ofstream tempout("tmp_net.net");
+    tempout<<"*Vertices "<<new_labels_old_labels.size()<<endl;
+    IT_loop(mapii, itm, new_labels_old_labels) {
+        tempout<<itm->first+1<<" \""<<itm->first+1<<"\""<<endl;
+    }
+    tempout<<"*Edges"<<endl;
+    for(map<int, map<int, double> >::iterator itm_l =  Links.begin(); itm_l!=Links.end(); itm_l++) {
+        IT_loop(mapid, itm_l2, itm_l->second) {
+            if(itm_l->first < itm_l2->first) {
+                tempout<<itm_l->first+1<<" "<<itm_l2->first+1<<" "<<itm_l2->second<<endl;
+            }
+        }
+    }
+    tempout.close();
+    
+    char num_trials_ch[200];
+    sprintf(num_trials_ch, "  --num-trials %d ", Ntrials);
+    char seed_ch[200];
+    sprintf(seed_ch, " --seed %d ", random_seed);
+    string option_file(" tmp_net.net ./ --two-level --undirected  ");
+    string option_log(" > infomap.log");
+    string command_line = INFOMAP_PATH + option_file + string(num_trials_ch) + string(seed_ch) + option_log;
+    
+    // running the code
+    system(command_line.c_str());
+    
+    // getting the partition    
+    ifstream tree_in("tmp_net.tree");
+    string gins;
+    while(getline(tree_in, gins)) if(gins.size()>0 and gins[0]!='#') {
+        deque<string> vss;
+        separate_strings_tree_file(gins,  vss);
+        //prints(vss);
+        if(vss.size()!=4) {
+            cerr<<"error in tree file"<<endl;
+            exit(-1);
+        }
+        int node_new_label= atoi(vss[3].c_str())-1;
+        int cluster= atoi(vss[0].c_str());
+        hard_memberships[new_labels_old_labels[node_new_label]] = cluster;
+    }
+    tree_in.close();
+    return 0.;
 }
 
 double get_infomap_partition_from_file(int Ntrials, int random_seed, \

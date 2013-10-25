@@ -5,6 +5,8 @@
 
 // global variables (really minor things)
 bool global_verbose=false;
+const string INFOMAP_PATH="___INSERT_INFOMAP_PATH_HERE___";
+
 
 #include "../SingleSliceInfomap/infomap_single_function.cpp"
 #include "sig_topics.h"
@@ -12,6 +14,7 @@ bool global_verbose=false;
 
 
 int main(int argc, char * argv[]) {
+    
     
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);

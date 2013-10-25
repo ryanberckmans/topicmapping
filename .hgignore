@@ -24,3 +24,15 @@ syntax: glob
 a.out
 
 # miscellanea
+Infomap
+topicmap
+*txt
+*dat
+*corpus
+small
+*tmp
+*log
+*part
+*net
+*tree
+docmap_tmp.cpp
