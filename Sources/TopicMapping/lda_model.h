@@ -3,24 +3,12 @@
 
 #include "lda_util.cpp"
 
-double word_corpus::lda_inference(int doc_number, map<int, mapid> & topic_word,
-                                  mapid & doc_topic, double alpha, ostream & infout2) {
+double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout2) {
 
-    // TODO:
-    // add smoothing on topic_word (1e-2 should be OK)
-    // and make topic sparse.
-    // doc_number does not deal with all topics.
-
-
-    // inference is performed using only topics which are in doc_topic
-    // this is a futher approximation, but enables sparser data structures
-    // (each document is only using a limited set of topics)
-
-    int num_topics= topic_word.size();
-    
+    // assert here
+    int num_topics= betas_ldav[0].size();    
     //cout<<"num_topics:: "<<num_topics<<endl;
     
-    // p(topic|doc) inferred -not normalized-
     DD var_gamma;
     var_gamma.assign(num_topics, 0.);
     // psi(var_gamma)
@@ -28,24 +16,14 @@ double word_corpus::lda_inference(int doc_number, map<int, mapid> & topic_word,
     double oldphi[num_topics];
 
 
-    // each word of doc in a (topic-probability)
-    // DD[topic] is the probability
-    map<int, DD> phi;
-    IT_loop(mapii, itm, docs[doc_number].wn_occurences) {            
-        DD void_dd;
-        void_dd.assign(num_topics, 0.);
-        phi[itm->first]=void_dd;
-    }
     // compute posterior dirichlet
     for(int k=0; k<num_topics; k++) {
         // uniform
         var_gamma[k]=(alpha + double(docs[doc_number].num_words)/num_topics);
-        //var_gamma[k]=alpha + get_from_mapid(doc_topic, k) * docs[doc_number].num_words;
         digamma_gam[k]=digamma(var_gamma[k]);
         // phi[word][topic]
         IT_loop(mapii, itm, docs[doc_number].wn_occurences) {            
-            phi[itm->first][k] = 1.0/num_topics;
-            //phi[itm->first][k] = digamma_gam[k] + log(max(get_from_mapid(topic_word[k], itm->first), 1e-100));
+            phis_ldav[itm->first][k] = 1.0/num_topics;
         }
     }
     
@@ -66,29 +44,24 @@ double word_corpus::lda_inference(int doc_number, map<int, mapid> & topic_word,
             double phisum;
 
             for (int k = 0; k < num_topics; k++) {
-                // this needs to be fixed
-                // 1e-100 is a very small number, just because this word cannot be found in topic k
-                // ADD SMOOTING HERE
 
-                oldphi[k]=phi[n][k];
-                phi[n][k] = digamma_gam[k] + log(max(get_from_mapid(topic_word[k], n), 1e-100));
+                oldphi[k]=phis_ldav[n][k];
+                phis_ldav[n][k] = digamma_gam[k] + betas_ldav[n][k];
                 if (k > 0)
-                    phisum = log_sum(phisum, phi[n][k]);
+                    phisum = log_sum(phisum, phis_ldav[n][k]);
                 else
-                    phisum = phi[n][k]; // note, phi is in log space
+                    phisum = phis_ldav[n][k]; // note, phi is in log space
             }
             
             for (int k = 0; k < num_topics; k++) {
             
-                phi[n][k] = exp(phi[n][k] - phisum);
-                var_gamma[k] += itm->second*(phi[n][k] - oldphi[k]);
+                phis_ldav[n][k] = exp(phis_ldav[n][k] - phisum);
+                var_gamma[k] += itm->second*(phis_ldav[n][k] - oldphi[k]);
                 digamma_gam[k] = digamma(var_gamma[k]);
             }            
         }
 
-        likelihood = compute_likelihood(doc_number, topic_word, phi, var_gamma, alpha);
-        //cout<<"likelihood "<<likelihood<<endl;
-        //prints(var_gamma);
+        likelihood = compute_likelihood(doc_number, var_gamma, alpha);
         
         if(likelihood!=likelihood) {
             cerr<<"error in likelihood:: "<<likelihood<<endl;
@@ -119,11 +92,10 @@ double word_corpus::lda_inference(int doc_number, map<int, mapid> & topic_word,
  *
  */
     
-double word_corpus::compute_likelihood(int doc_number, map<int, mapid> & topic_word,
-                                       map<int, DD> & phi, DD & var_gamma, double alpha) {
+double word_corpus::compute_likelihood(int doc_number, DD & var_gamma, double alpha) {
     
     
-    int num_topics= topic_word.size();
+    int num_topics= betas_ldav[0].size();
     
     double dig[num_topics];
     double var_gamma_sum=0.;
@@ -148,16 +120,21 @@ double word_corpus::compute_likelihood(int doc_number, map<int, mapid> & topic_w
         IT_loop(mapii, itm, docs[doc_number].wn_occurences) {
         
             int n=itm->first;
-            if (phi[n][k] > 0) {
+            if (phis_ldav[n][k] > 0) {
         
-                likelihood += itm->second * (phi[n][k]*((dig[k] - digsum) - log(phi[n][k])
-                            +  log(max(get_from_mapid(topic_word[k], n), 1e-100)) )    );
+                likelihood += itm->second * (phis_ldav[n][k]*((dig[k] - digsum) - log(phis_ldav[n][k])
+                            +  betas_ldav[n][k] )    );
                 }
             }
     }
     return(likelihood);
 }
 
+
+void assert_consecutive(DI & a) {
+    // this function is checking that a is range(a.size())
+    RANGE_loop(i, a) assert_ints(i, a[i], "error in assert_consecutive");
+}
 
 
 
@@ -194,20 +171,50 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
         count_line+=1;
     }
     
-    cout<<"running lda model"<<endl;
-    //RANGE_loop(i, doc_topic) prints(doc_topic[i]);
     
-    /*
-    cout<<"topics:: "<<topic_word.size()<<endl;
+    //lda data structures
+    phis_ldav.clear();
+    betas_ldav.clear();
+    alphas_ldav.clear();
+
+    
+    DI all_words;
+    IT_loop(mapii, itm, wn_occurences_global) all_words.push_back(itm->first);
+    assert_consecutive(all_words);
+    DI all_topics;
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
-        cout<<"--------- "<<topic_itm->first<<endl;
-        //prints(topic_itm->second);
-    }*/
+        all_topics.push_back(topic_itm->first);
+    }
+    assert_consecutive(all_topics);
+    
+    int num_topics=topic_word.size();
+    DD void_dd;
+    void_dd.assign(num_topics, 0.);
+    RANGE_loop(i, all_words) {
+        betas_ldav.push_back(void_dd);
+        // this could be made more efficient
+        phis_ldav.push_back(void_dd);
+    }
+    alphas_ldav=void_dd;
     
     
-    //gibbs_sampling(doc_assignments);
-    //exit(-1);
+    // copying topic_word in betas_ldav
+    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+         topic_itm!=topic_word.end(); topic_itm++) {
+        
+        int word_wn=0;
+        IT_loop(mapid, itm2, topic_itm->second) { 
+            assert_ints(itm2->first, word_wn);
+            betas_ldav[word_wn][topic_itm->first]=log(itm2->second);
+            ++word_wn;
+        }
+    }
+    
+    
+    
+    cout<<"running lda model"<<endl;
+
     
     double alpha = 0.0065538836;
     
@@ -222,7 +229,7 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
         if (i%100==0)
             cout<<"running lda-inference for doc "<<i<<endl;
         mapid fake;
-        infout<<lda_inference(i, topic_word, fake, alpha, infout2)<<endl;
+        infout<<lda_inference(i, alpha, infout2)<<endl;
         //exit(-1);
     }
     

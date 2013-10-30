@@ -167,11 +167,10 @@ private:
                              
                              
     // lda-functions
-    double lda_inference(int doc_number, map<int, mapid> & topic_word,
-                         mapid & doc_topic, double alpha, ostream & infout2);
+    
+    double lda_inference(int doc_number, double alpha, ostream & infout2);
         
-    double compute_likelihood(int doc_number, map<int, mapid> & topic_word,
-                              map<int, DD> & phi, DD & var_gamma, double alpha);
+    double compute_likelihood(int doc_number, DD & var_gamma, double alpha);
                               
     void gibbs_sampling(deque<mapii> & doc_assignments);
     
@@ -190,23 +189,6 @@ private:
 #include "sig_topics.cpp"
 
 
-void check_distr_equal(mapid & distr1, mapii & distr2) {
-    
-    mapid distr2norm;
-    IT_loop(mapii, itm, distr2) distr2norm[itm->first]=double(itm->second);
-    normalize_mapid(distr2norm);
-    
-    cout<<"check_distr_equal"<<endl;
-    IT_loop(mapid, itm, distr1) {
-        //cout<<itm->first<<" "<<itm->second<<" "<<distr2norm.at(itm->first)<<endl;
-        if(fabs(itm->second-distr2norm.at(itm->first))>1e-5) {
-            cerr<<"error in check_distr_equal"<<endl;
-            exit(-1);
-        }
-    }
-    cout<<"done"<<endl;
-    
-}
 
 
 void second_level(double min_filter, double max_filter, int min_docs, \

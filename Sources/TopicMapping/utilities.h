@@ -28,33 +28,6 @@ void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<in
 
 
 
-int argmax(mapid & topic_distr) {
-    
-    int argm=-1;
-    double maxe=0.;
-    IT_loop(mapid, itm, topic_distr) {
-        if(itm->second>maxe) {
-            argm=itm->first;
-            maxe=itm->second;
-        }
-    }
-    return argm;
-    
-}
-
-
-double normalize_mapid(mapid & a) {
-
-    double norm=0.;
-    IT_loop(mapid, itm, a) norm+=itm->second;
-    if(norm<1e-10) {
-        a.clear();
-    }
-    else {
-        IT_loop(mapid, itm, a) itm->second/=norm;
-    }
-    return norm;
-}
 
 
 void set_matrix_to_zero(int rows, int columns, deque<DD> & matrix) {
@@ -77,22 +50,6 @@ void print_matrix_to_file_or_screen(deque<DD> & matrix, string filename) {
     }
     
 }
-
-
-inline double get_from_mapid(const mapid & m, int key) {
-    
-    /* this function returns m.at(key) if it exists
-     and 0 if it does not */
-    
-    mapid::const_iterator pos = m.find(key);
-    if (pos == m.end()) {
-        return 0.;
-    } else {
-        return pos->second;
-    }
-    
-}
-
 
 
 
