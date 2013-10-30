@@ -15,126 +15,6 @@ void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent, const do
 
 #include "infomap_utilities.cpp"
 
-/*
-double get_infomap_partition(int Ntrials, int random_seed, \
-                          map<int,map<int,double> > & Links, \
-                          deque<int> & memberships, bool verbose, const double & convergence_precision ) {
-    
-    ////
-     this function takes 
-     Links
-     the graph in the 
-     list of neighbors format
-     *** Links shoud be symmetrical
-     *** and nodes should be labelled starting from zero
-     and sets a partition
-     which optimizes the code length
-     the function returns the 
-     relative gain in code length
-     * /
-    
-    memberships.clear();
-    
-    char random_seed_ch[100];
-    sprintf(random_seed_ch, "%d", random_seed);
-    MTRand *R = new MTRand(stou(random_seed_ch));
-    
-    int Nnode = Links.size();    
-    string *nodeNames = new string[Nnode];    
-    char node_name[100];
-    for(int i=0;i<Nnode;i++) {
-        sprintf(node_name, "%d", i);
-        string node_name_str(node_name);
-        nodeNames[i]= node_name_str;
-    }
-    
-    /////////// Partition network /////////////////////
-    double totalDegree = 0.0;
-    vector<double> degree(Nnode);
-    Node **node = new Node*[Nnode];
-    for(int i=0;i<Nnode;i++){
-        node[i] = new Node(i);
-        degree[i] = 0.0;
-    }
-    
-    int NselfLinks = 0;
-    for(map<int,map<int,double> >::iterator fromLink_it = Links.begin(); fromLink_it != Links.end(); fromLink_it++){
-        for(map<int,double>::iterator toLink_it = fromLink_it->second.begin(); toLink_it != fromLink_it->second.end(); toLink_it++){
-            
-            int from = fromLink_it->first;
-            int to = toLink_it->first;
-            double weight = toLink_it->second;
-            if(weight > 0.0){
-                if(from == to){
-                    NselfLinks++;
-                }
-                else{
-                    node[from]->links.push_back(make_pair(to,weight));
-                    node[to]->links.push_back(make_pair(from,weight));
-                    totalDegree += 2*weight;
-                    degree[from] += weight;
-                    degree[to] += weight;
-                }
-            }
-        }
-    }
-   
-    
-    //Swap maps to free memory
-    for(map<int,map<int,double> >::iterator it = Links.begin(); it != Links.end(); it++)
-        map<int,double>().swap(it->second);
-    map<int,map<int,double> >().swap(Links);
-    
-    // Initiation
-    GreedyBase* greedy;
-    greedy = new Greedy(R,Nnode,totalDegree,node);
-    greedy->initiate();
-    
-    double uncompressedCodeLength = -greedy->nodeDegree_log_nodeDegree;
-    repeated_partition(R, &node, greedy, !verbose, Ntrials, convergence_precision);
-    //int Nmod = greedy->Nnode;
-    //cout << "Done! Code length " << greedy->codeLength << " in " << Nmod << " modules." << endl;
-    //cout << "Compressed by " << 100.0*(1.0-greedy->codeLength/uncompressedCodeLength) << " percent." << endl;
-    
-    double relative_gain=1.0-greedy->codeLength/uncompressedCodeLength;
-    
-    // Order modules by size
-    multimap<double,treeNode,greater<double> > treeMap;
-    multimap<double,treeNode,greater<double> >::iterator it_tM;
-    for(int i=0;i<greedy->Nnode;i++){
-        
-        int Nmembers = node[i]->members.size();
-        treeNode tmp_tN;
-        it_tM = treeMap.insert(make_pair(node[i]->degree/totalDegree,tmp_tN));
-        for(int j=0;j<Nmembers;j++)
-            it_tM->second.members.insert(make_pair(degree[node[i]->members[j]]/totalDegree,make_pair(node[i]->members[j],nodeNames[node[i]->members[j]]))); 
-        
-    }
-    
-    memberships.assign(Nnode, 0);
-    int clusterNr = 0;  
-    for(multimap<double,treeNode,greater<double> >::iterator mod = treeMap.begin(); mod != treeMap.end(); mod++){
-        for(multimap<double,pair<int,string>,greater<double> >::iterator mem = mod->second.members.begin(); mem != mod->second.members.end(); mem++){
-            memberships[mem->second.first] = clusterNr;
-        }
-        clusterNr++;
-    }
-    
-    // freeing memory ------------------------
-    delete [] nodeNames;
-    for(int i=0;i<greedy->Nnode;i++){
-        delete node[i];
-    }
-    delete [] node;
-    delete greedy;
-    delete R;
-    
-    return relative_gain;
-    
-}
-
-
-*/
 
 bool separate_strings_tree_file(string &b, deque<string> & v) {		
     
@@ -285,7 +165,7 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
         }
         int node_new_label= atoi(vss[3].c_str())-1;
         int cluster= atoi(vss[0].c_str());
-        hard_memberships[new_labels_old_labels[node_new_label]] = cluster;
+        hard_memberships[new_labels_old_labels.at(node_new_label)] = cluster;
     }
     tree_in.close();
     return 0.;
@@ -294,7 +174,6 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
 double get_infomap_partition_from_file(int Ntrials, int random_seed, \
                                        string filename, mapii & hard_memberships, 
                                        bool verbose, const double & convergence_precision) {
-    
     
     ifstream gin(filename.c_str());
     string s;
@@ -312,7 +191,7 @@ double get_infomap_partition_from_file(int Ntrials, int random_seed, \
         weights.push_back(link_s[2]);
     }
     
-        
+    
     return get_infomap_partition_from_edge_list(Ntrials, \
                             random_seed, links1, links2, weights, \
                             hard_memberships, verbose, convergence_precision);

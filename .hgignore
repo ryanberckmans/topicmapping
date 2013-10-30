@@ -21,7 +21,7 @@ syntax: glob
 *.DS_Store
 
 # binaries
-a.out
+*.out
 
 # miscellanea
 Infomap
@@ -35,4 +35,12 @@ small
 *part
 *net
 *tree
-docmap_tmp.cpp
+*.beta
+*.other
+*.gamma
+*.o
+yeah*
+try.cpp
+gg
+inf.cpp
+compile_lda.sh

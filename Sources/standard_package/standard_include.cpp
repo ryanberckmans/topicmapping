@@ -47,14 +47,16 @@ typedef map<string, double> mapsd;
 
 
 #include "cast.cpp"
+#include "assert.cpp"
+#include "deque_numeric.cpp"
 #include "print.cpp"
 #include "random.cpp"
+#include "partition.cpp"
+#include "map_utilities.cpp"
 #include "combinatorics.cpp"
 #include "histograms.cpp"
-#include "deque_numeric.cpp"
-#include "partition.cpp"
 #include "mutual.cpp"
-#include "pajek.cpp"
+//#include "pajek.cpp"
 
 
 #endif

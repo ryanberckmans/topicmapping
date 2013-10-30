@@ -47,7 +47,7 @@ double variance_func(Seq &sq) {
 	var=var/sq.size();
 	var-=av*av;
 	
-	if(var<1e-7)
+	if(var<1e-20)
 		return 0;
 	
 	return var;

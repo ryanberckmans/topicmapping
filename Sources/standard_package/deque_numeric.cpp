@@ -212,7 +212,7 @@ double norm_one(const deque<double> & a) {
 
 
 
-int normalize_one(deque<double> & a) {
+double normalize_one(deque<double> & a) {
 
 	
 	double norm=norm_one(a);
@@ -225,7 +225,7 @@ int normalize_one(deque<double> & a) {
 		a[i]/=norm;
 	}
 	
-	return 0;
+	return norm;
 
 
 }

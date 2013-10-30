@@ -107,6 +107,9 @@ public:
                                           mapid & pt);
 
 
+
+
+
     double dimap(double min_filter, double max_filter, int min_docs, \
                int Nruns, double p_value, string partition_file, \
                mapid & pt, \
@@ -127,6 +130,13 @@ public:
 	mapii wn_occurences_global;                 // wn - occurences
 	deque<doc> docs;                            // documents
 	int total_words;
+    
+    
+    double lda_model(deque<mapid> & doc_topic_best, 
+                     map<int, mapid> & topic_word_best, 
+                     deque<mapii> & doc_assignments);
+
+    
     
 private:
     
@@ -153,6 +163,27 @@ private:
                              deque<mapid> & doc_topic_best, \
                              map<int, mapid> & topic_word_best, \
                              deque<mapii> & doc_assignments_best, bool verbose);
+                             
+                             
+                             
+    // lda-functions
+    double lda_inference(int doc_number, map<int, mapid> & topic_word,
+                         mapid & doc_topic, double alpha, ostream & infout2);
+        
+    double compute_likelihood(int doc_number, map<int, mapid> & topic_word,
+                              map<int, DD> & phi, DD & var_gamma, double alpha);
+                              
+    void gibbs_sampling(deque<mapii> & doc_assignments);
+    
+    
+    
+    //lda data structures
+    deque<DD> phis_ldav;
+    deque<DD> betas_ldav;
+    DD alphas_ldav;
+    
+    
+    
 };
 
 
@@ -321,6 +352,4 @@ void second_level(double min_filter, double max_filter, int min_docs, \
 
 
 
-
-
-
+#include "lda_model.h"

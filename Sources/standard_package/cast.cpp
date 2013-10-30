@@ -4,6 +4,18 @@
 
 
 
+string str_cast(double number) {
+    ostringstream buff;
+    buff<<number;
+    return buff.str();
+}
+
+string str_cast(int number) {
+    ostringstream buff;
+    buff<<number;
+    return buff.str();
+}
+
 
 
 bool cast_string_to_double (string b, double &h) {		
@@ -264,18 +276,9 @@ bool separate_strings(string &b, deque<string> & v) {
 		
 		
 		}
-			
-		
-	
 	}
 	
-		
-			
 	return true;
-
-
-
-
 }
 
 
