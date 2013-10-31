@@ -119,3 +119,11 @@ void make_topic_names_consecutive(deque<mapid> & doc_topic, \
 }
 
 
+
+void assert_consecutive(DI & a) {
+    // this function is checking that a is range(a.size())
+    RANGE_loop(i, a) assert_ints(i, a[i], "error in assert_consecutive");
+}
+
+
+

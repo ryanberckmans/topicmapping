@@ -87,7 +87,9 @@ int main(int argc, char * argv[]) {
     */
     
     // optimizing LDA
-    C.lda_model(doc_topic_best, topic_word_best, doc_assignments);
+    C.lda_model(doc_topic_best, topic_word_best);
+    exit(-1);
+    
     
     
     // min_docs per subtopics

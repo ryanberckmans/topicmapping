@@ -132,9 +132,8 @@ public:
 	int total_words;
     
     
-    double lda_model(deque<mapid> & doc_topic_best, 
-                     map<int, mapid> & topic_word_best, 
-                     deque<mapii> & doc_assignments);
+    double lda_model(deque<mapid> & doc_topic, 
+                     map<int, mapid> & topic_word);
 
     
     
@@ -168,29 +167,23 @@ private:
                              
     // lda-functions
     
-    double lda_inference(int doc_number, double alpha, ostream & infout2);
-        
-    double compute_likelihood(int doc_number, DD & var_gamma, double alpha);
-                              
-    void gibbs_sampling(deque<mapii> & doc_assignments);
+    double lda_inference(int doc_number);
+    double compute_likelihood(int doc_number, DD & var_gamma);
+    void gibbs_sampling(deque<mapii> & doc_assignments);    
+    double run_em();
+    void set_class_words_to_zeros();
+    void initialize_lda_data(deque<mapid> & doc_topic, map<int, mapid> & topic_word);
+    void optimize_alpha();
     
-    
-    double run_em(int num_words_all, int num_topics_all);
-    
-    
-    //lda data structures
+    // lda data structures
+    // (add explanation here)
     deque<DD> phis_ldav;
     deque<DD> betas_ldav;
     DD alphas_ldav;
-    
-    deque<DD> class_word;
-    DD class_total;
-    
-    // sum_gamma_over_topics[doc_number]
-    // is the number of words + sum_alphas
-    DD sum_gamma_over_topics;
-    
-    
+    deque<DD> class_word_ldav;
+    DD class_total_ldav;
+    deque<DD> gammas_ldav;
+    int num_topics_ldav;
     
 };
 
