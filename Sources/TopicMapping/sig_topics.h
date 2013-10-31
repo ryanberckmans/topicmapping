@@ -175,11 +175,20 @@ private:
     void gibbs_sampling(deque<mapii> & doc_assignments);
     
     
+    double run_em(int num_words_all, int num_topics_all);
+    
     
     //lda data structures
     deque<DD> phis_ldav;
     deque<DD> betas_ldav;
     DD alphas_ldav;
+    
+    deque<DD> class_word;
+    DD class_total;
+    
+    // sum_gamma_over_topics[doc_number]
+    // is the number of words + sum_alphas
+    DD sum_gamma_over_topics;
     
     
     

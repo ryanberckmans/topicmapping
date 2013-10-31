@@ -25,24 +25,35 @@ double invert_digamma(double y) {
 
 
 void optimize_alpha(deque<DD> & gammas) {
-
+    
+    
+    
     // ps[i][k] is the probability of topic k in sample i
     deque<DD> ps;
-    DD sum_gamma_over_topics;
+    
+    sum_gamma_over_topics.clear();
     // sum_gamma_over_topics[i] = digamma(sum_k) 
     sum_gamma_over_topics.assign(gammas.size(), 0.);
-
+    // assert that sum_gamma_over_topics is simply
+    // the digamma(number of words + sum of priors)
+    
+    
     RANGE_loop(i, gammas) {
         ps.push_back(gammas[i]);
         double sum_=normalize_one(ps[i]);
         sum_gamma_over_topics[i]=digamma(sum_);
     }
     
-    
     if(gammas.size()==0) {
-        cerr<<"gammas are empth in optimize_alpha"<<endl; exit(-1);
+        cerr<<"gammas are empty in optimize_alpha"<<endl; exit(-1);
     }
+
+    // this is only important the first time 
+    // I should move this to initialization
     
+    
+    
+    //-------------------------- BEGIN INITIALIZATION --------------------
     // average_ps[k] is the average over i of p[i][k]
     DD average_ps;
     average_ps.assign(gammas[0].size(), 0.);
@@ -50,9 +61,18 @@ void optimize_alpha(deque<DD> & gammas) {
     DD average_square_ps;
     average_square_ps.assign(gammas[0].size(), 0.);
 
+    RANGE_loop(i, ps) {
+        RANGE_loop(k, ps[i]) {
+            average_ps[k]+=ps[i][k];
+            average_square_ps[k]+=(ps[i][k])*(ps[i][k]);            
+        }
+    }
+    
+    RANGE_loop(k, average_ps) average_ps[k]/= gammas.size();
+    RANGE_loop(k, average_ps) average_square_ps[k]/= gammas.size();
+    //-------------------------- INITIALIZATION END --------------------
 
-    DD average_log_ps;
-    average_log_ps.assign(gammas[0].size(), 0.);
+
 
     // 1/gammas.size() x sum_i [ digamma(gammas[i][k]) - sum_gamma_over_topics[i]] 
     DD gamma_terms;
@@ -61,12 +81,6 @@ void optimize_alpha(deque<DD> & gammas) {
     
     RANGE_loop(i, ps) {
         RANGE_loop(k, ps[i]) {
-            average_ps[k]+=ps[i][k];
-            average_square_ps[k]+=(ps[i][k])*(ps[i][k]);
-            if(ps[i][k]>0.)
-                average_log_ps[k]+=log(ps[i][k]);
-            else
-                average_log_ps[k]+=-1000;
             // gammas should not never be so small because of the prior
             if(gammas[i][k]>1e-10)
                 gamma_terms[k]+= digamma(gammas[i][k]) - sum_gamma_over_topics[i];
@@ -78,9 +92,6 @@ void optimize_alpha(deque<DD> & gammas) {
         }
     }
     
-    RANGE_loop(k, average_ps) average_ps[k]/=gammas.size();
-    RANGE_loop(k, average_ps) average_square_ps[k]/= gammas.size();
-    RANGE_loop(k, average_ps) average_log_ps[k]/= gammas.size();
     
     RANGE_loop(k, average_ps) gamma_terms[k]/= gammas.size();
     
@@ -92,8 +103,6 @@ void optimize_alpha(deque<DD> & gammas) {
     prints(average_square_ps);
     
 
-    cout<<"average_log_ps"<<endl;
-    prints(average_log_ps);
 
     cout<<"gamma_terms"<<endl;
     prints(gamma_terms);

@@ -3,8 +3,10 @@
 
 #include "lda_util.cpp"
 
-double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout2) {
-
+double word_corpus::lda_inference(int doc_number) {
+    
+    // remove infout2
+    
     // assert here
     int num_topics= betas_ldav[0].size();    
     //cout<<"num_topics:: "<<num_topics<<endl;
@@ -19,7 +21,7 @@ double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout
     // compute posterior dirichlet
     for(int k=0; k<num_topics; k++) {
         // uniform
-        var_gamma[k]=(alpha + double(docs[doc_number].num_words)/num_topics);
+        var_gamma[k]=(alphas_ldav[k] + double(docs[doc_number].num_words)/num_topics);
         digamma_gam[k]=digamma(var_gamma[k]);
         // phi[word][topic]
         IT_loop(mapii, itm, docs[doc_number].wn_occurences) {            
@@ -61,7 +63,7 @@ double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout
             }            
         }
 
-        likelihood = compute_likelihood(doc_number, var_gamma, alpha);
+        likelihood = compute_likelihood(doc_number, var_gamma);
         
         if(likelihood!=likelihood) {
             cerr<<"error in likelihood:: "<<likelihood<<endl;
@@ -73,14 +75,17 @@ double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout
         
         /*cout<<"iter "<<var_iter<<endl;
         prints(var_gamma);
-        cout<<"likelihood:: "<<likelihood<<" "<<converged<<endl;*/
-        
-        
+        cout<<"likelihood:: "<<likelihood<<" "<<converged<<endl;*/        
     }
-    
-    for (int k = 0; k < num_topics; k++)
-        infout2<<var_gamma[k]<<" ";
-    infout2<<endl;
+
+
+    // updating stats for betas_ldav
+
+    IT_loop(mapii, itm, docs[doc_number].wn_occurences) for (int k = 0; k < num_topics; k++) {
+        class_word[k][itm->first] += itm->second * phis_ldav[itm->first][k];
+        class_total[k] += itm->second * phis_ldav[itm->first][k];
+    }
+
     
     return(likelihood);
 }
@@ -92,27 +97,40 @@ double word_corpus::lda_inference(int doc_number, double alpha, ostream & infout
  *
  */
     
-double word_corpus::compute_likelihood(int doc_number, DD & var_gamma, double alpha) {
+double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
     
+    // assert number of topics is consistent (remove this later)
+    assert_ints(var_gamma.size(), alphas_ldav.size());
+    assert_ints(var_gamma.size(), betas_ldav[0].size());
     
     int num_topics= betas_ldav[0].size();
     
     double dig[num_topics];
     double var_gamma_sum=0.;
-
+    double sum_l_gamma=0.;
+    double sum_alphas=0.;
     for (int k = 0; k < num_topics; k++) {
         dig[k] = digamma(var_gamma[k]);
         var_gamma_sum += var_gamma[k];
+        sum_l_gamma += lgamma(alphas_ldav[k]);
+        sum_alphas += alphas_ldav[k];
     }
     double digsum = digamma(var_gamma_sum);
     
+    /*
     double likelihood = lgamma(alpha * num_topics) 
                         - num_topics * lgamma(alpha) 
                         - lgamma(var_gamma_sum);
+    */
+    
+    double likelihood = lgamma(sum_alphas) 
+                        - sum_l_gamma 
+                        - lgamma(var_gamma_sum);
+    
     
     for (int k = 0; k < num_topics; k++) {
         likelihood +=
-                        (alpha - 1)*(dig[k] - digsum) 
+                        (alphas_ldav[k] - 1)*(dig[k] - digsum) 
                         + lgamma(var_gamma[k])
                         - (var_gamma[k] - 1)*(dig[k] - digsum);
         
@@ -136,6 +154,63 @@ void assert_consecutive(DI & a) {
     RANGE_loop(i, a) assert_ints(i, a[i], "error in assert_consecutive");
 }
 
+
+
+
+double word_corpus::run_em(int num_words_all, int num_topics_all) {
+    
+    cout<<"running lda model"<<endl;    
+    
+    // initializing class_word and class_total
+    // class_word[topic][wn] 
+    // class_total[topic]
+    DD void_dd_class;
+    void_dd_class.assign(num_words_all, 0.);
+    class_word.clear();
+    for(int k=0; k<num_topics_all; k++) {
+        class_word.push_back(void_dd_class);
+    }
+    class_total.clear();
+    class_total.assign(num_topics_all, 0.);
+    
+    // E step
+    double alpha = 0.0065538836;
+    alphas_ldav.clear();
+    // optimiza alpha to get initial conditions on alphas_ldav
+    // you should use doc_topic for that
+
+    
+    ofstream infout("inf.txt");
+    
+    double likelihood_all=0.;
+    RANGE_loop(i, docs) {
+        if (i%100==0)
+            cout<<"running lda-inference for doc "<<i<<endl;
+        double likelihood_i = lda_inference(i);
+        likelihood_all+=likelihood_i;
+        infout<<likelihood_i<<endl;
+    }
+    infout.close();
+    
+    
+    // M step
+    for(int k=0; k < num_topics_all; k++) {
+        for(int w = 0; w < num_words_all; w++) {
+            if(class_word[k][w] > 0)
+                betas_ldav[w][k] = log(class_word[k][w]) - log(class_total[k]);
+            else
+                betas_ldav[w][k] = -100;
+        }
+    }
+    
+    
+    // I need to collect gammas for the alpha optimization 
+    // and change compute_likelihood
+    // then we're totally done
+    
+
+    return 0.;
+}
 
 
 double word_corpus::lda_model(deque<mapid> & doc_topic, 
@@ -171,13 +246,7 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
         count_line+=1;
     }
     
-    
-    //lda data structures
-    phis_ldav.clear();
-    betas_ldav.clear();
-    alphas_ldav.clear();
-
-    
+    // asserting everything is good
     DI all_words;
     IT_loop(mapii, itm, wn_occurences_global) all_words.push_back(itm->first);
     assert_consecutive(all_words);
@@ -187,6 +256,18 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
         all_topics.push_back(topic_itm->first);
     }
     assert_consecutive(all_topics);
+    // asserting everything is good
+    
+    //lda data structures
+    phis_ldav.clear();
+    
+    // betas_ldav is inverted respect with the original code
+    // I think it's better this way (one long vector of short vectors rather 
+    // than few long vectors)
+    // should I do the same thing on class_word?
+    
+    betas_ldav.clear();
+    alphas_ldav.clear();
     
     int num_topics=topic_word.size();
     DD void_dd;
@@ -212,30 +293,8 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
     }
     
     
-    
-    cout<<"running lda model"<<endl;
-
-    
-    double alpha = 0.0065538836;
-    
-    ofstream infout("inf.txt");
-    ofstream infout2("inf2.txt");
-    mapid fake;
-    //cout<<lda_inference(732, topic_word, fake, alpha, infout2)<<endl;
-
-    //exit(-1);
-    
-    RANGE_loop(i, docs) {
-        if (i%100==0)
-            cout<<"running lda-inference for doc "<<i<<endl;
-        mapid fake;
-        infout<<lda_inference(i, alpha, infout2)<<endl;
-        //exit(-1);
-    }
-    
-    infout.close();
-    infout2.close();
-        
+    run_em(all_words.size(), all_topics.size());
+            
     return 0.;
 
 }
