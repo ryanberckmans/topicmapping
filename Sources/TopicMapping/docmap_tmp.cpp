@@ -34,33 +34,25 @@ int main(int argc, char * argv[]) {
     // pt[topic] is p(t)
     mapid pt;
     
-    /*
-    double eff_ntopics=C.dimap(min_filter, max_filter, min_docs, \
-            Nruns, p_value, partition_file, \
-            pt,
-            doc_topic_best, \
-            topic_word_best, \
-            doc_assignments, 0, P.double_ps.at("-conv"));
     
+    double eff_ntopics=C.dimap(P.int_ps.at("-r"), \
+                               pt,doc_topic_best, \
+                               topic_word_best,
+                               doc_assignments);
     
     cout<<"Effective number topics: "<<eff_ntopics<<endl;
-    
-    
-    
     
     // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
     C.write_short_beta_and_theta_files(doc_topic_best, topic_word_best, \
                                        "doc_topics.txt", "topic_words.txt", "topic_summary.txt", pt);
-    if(P.bool_ps.at("-fullout"))
-        C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
+    C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
-    */
+    
     
     
     
     // optimizing LDA
-    //C.lda_model(doc_topic_best, topic_word_best);
-    //exit(-1);
+    C.lda_model(doc_topic_best, topic_word_best);
     
     
     

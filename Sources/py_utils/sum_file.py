@@ -25,3 +25,5 @@ for l in open(sys.argv[2]):
 
 for i in range(len(sum_v)):
     print sum_v[i], sum_v2[i]
+    
+print '#', sum(sum_v), sum(sum_v2)

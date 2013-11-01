@@ -34,7 +34,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     // ---------- TEMPORARY ----------
     topic_word.clear();
-    ifstream gin("run1/final.beta");
+    ifstream gin("betas.txt");
     string gins;
     int count_line=0;
     while(getline(gin, gins)) {
@@ -106,7 +106,10 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         int word_wn=0;
         IT_loop(mapid, itm2, topic_itm->second) { 
             assert_ints(itm2->first, word_wn);
-            betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
+            if(itm2->second>0)
+                betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
+            else
+                betas_ldav_[word_wn][topic_itm->first]=-100;
             ++word_wn;
         }
     }

@@ -1,7 +1,9 @@
 
 double word_corpus::lda_inference(int doc_number) {
     
-    // remove infout2
+    
+    //cout<<"alphas_ldav_:: "<<num_topics_ldav_<<endl;
+    //prints(alphas_ldav_);
     
     // assert here
     int num_topics= betas_ldav_[0].size();    
@@ -69,9 +71,11 @@ double word_corpus::lda_inference(int doc_number) {
         likelihood_old = likelihood;
         
         
-        /*cout<<"iter "<<var_iter<<endl;
-         prints(var_gamma);
-         cout<<"likelihood:: "<<likelihood<<" "<<converged<<endl;*/        
+        /*
+        cout<<"iter "<<var_iter<<endl;
+        prints(var_gamma);
+        cout<<"likelihood:: "<<likelihood<<" "<<converged<<endl;
+        */     
     }
     
     // updates for M steps
@@ -96,6 +100,10 @@ double word_corpus::lda_inference(int doc_number) {
 
 double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
     
+    
+    
+    //cout<<"var gamma"<<endl;
+    //prints(var_gamma);
     // assert number of topics is consistent (remove this later)
     assert_ints(var_gamma.size(), alphas_ldav_.size());
     assert_ints(var_gamma.size(), betas_ldav_[0].size());
