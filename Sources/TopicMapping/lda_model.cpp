@@ -15,7 +15,7 @@ void word_corpus::set_class_words_to_zeros() {
 
     
     DD void_dd_class;
-    void_dd_class.assign(wn_occurences_global.size(), 0.);
+    void_dd_class.assign(word_occurrences.size(), 0.);
     for(int k=0; k<num_topics_ldav; k++) {
         class_word_ldav.push_back(void_dd_class);
     }
@@ -32,7 +32,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // this function is getting all data structure for lda topics ready
     // some asserts are also done and should be removed later
     
-    // TEMPORARY ---------------------
+    // ---------- TEMPORARY ----------
     topic_word.clear();
     ifstream gin("run1/final.beta");
     string gins;
@@ -56,9 +56,6 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     
     // asserting everything is starting from zero and being consecutive
-    DI all_words;
-    IT_loop(mapii, itm, wn_occurences_global) all_words.push_back(itm->first);
-    assert_consecutive(all_words);
     DI all_topics;
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
@@ -87,7 +84,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     DD void_dd_numtops;
     void_dd_numtops.assign(num_topics_ldav, 0.);
     
-    RANGE_loop(i, all_words) {
+    RANGE_loop(wn, word_occurrences) {
         betas_ldav.push_back(void_dd_numtops);
         // this could be made more efficient (making it depend on single documents)
         phis_ldav.push_back(void_dd_numtops);

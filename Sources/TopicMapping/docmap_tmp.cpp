@@ -1,6 +1,4 @@
 
-
-
 # include "../standard_package/standard_include.cpp"
 
 // global variables (really minor things)
@@ -8,27 +6,22 @@ bool global_verbose=false;
 const string INFOMAP_PATH="/Users/andrealancichinetti/Desktop/work/2013/LDA_eval/topicmapping/bin/Infomap";
 
 
-
-
 #include "../SingleSliceInfomap/infomap_single_function.cpp"
-#include "sig_topics.h"
+#include "word_corpus.h"
 #include "set_parameters.h"
 
 
 int main(int argc, char * argv[]) {
-    
-    
-    
+        
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
-    
     
     string corpus_file=P.string_ps.at("-f");
     double p_value=P.double_ps.at("-p");
     double min_filter=P.double_ps.at("-minf");
     double max_filter=P.double_ps.at("-maxf");
     int min_docs=P.int_ps.at("-t");
-    int Nruns=P.int_ps.at("-r");
+    //int Nruns=P.int_ps.at("-r");
     string partition_file=P.string_ps.at("-part");
     
     // checking parameters
@@ -49,12 +42,13 @@ int main(int argc, char * argv[]) {
     cout<<"*** max filter: "<<max_filter<<endl;
     cout<<"*** min docs per topic: "<<min_docs<<endl;
     cout<<"*** convergence parameter: "<<P.double_ps.at("-conv")<<endl;
-    if (partition_file.size()>0)
+    if(partition_file.size()>0)
         cout<<"***  partition file: "<<partition_file<<endl;
     
     // setting corpus from file
     word_corpus C;
 	C.set_from_file(corpus_file);
+
 
     // doc_topic[doc] is p(t|doc)
     deque<mapid> doc_topic_best;
@@ -87,22 +81,12 @@ int main(int argc, char * argv[]) {
     */
     
     // optimizing LDA
-    C.lda_model(doc_topic_best, topic_word_best);
-    exit(-1);
+    //C.lda_model(doc_topic_best, topic_word_best);
+    //exit(-1);
     
     
     
-    // min_docs per subtopics
-    min_docs=P.int_ps.at("-subt");
 
-    if (P.bool_ps.at("-nos")==false) {
-        // it would be better to pass P instead of all this args (maybe)
-        second_level(min_filter, max_filter, min_docs, \
-                     Nruns, p_value, C, \
-                     doc_assignments, doc_topic_best, topic_word_best, \
-                     P.double_ps.at("-conv"), max(P.int_ps.at("-subdocs"), min_docs), \
-                     P.bool_ps.at("-fullout"), pt);
-    }
     return 0;
 }
 

@@ -181,11 +181,11 @@ double word_corpus::run_em() {
         // M step
         // optimizing betas
         for(int k=0; k < num_topics_ldav; k++) {
-            for(UI w = 0; w < wn_occurences_global.size(); w++) {
-                if(class_word_ldav[k][w] > 0)
-                    betas_ldav[w][k] = log(class_word_ldav[k][w]) - log(class_total_ldav[k]);
+            RANGE_loop(wn, word_occurrences) {
+                if(class_word_ldav[k][wn] > 0)
+                    betas_ldav[wn][k] = log(class_word_ldav[k][wn]) - log(class_total_ldav[k]);
                 else
-                    betas_ldav[w][k] = -100;
+                    betas_ldav[wn][k] = -100;
             }
         }    
         optimize_alpha();

@@ -1,6 +1,9 @@
 
 
 
+// TODO
+// some parameters disappeared- this needs some updates
+
 class parameters {
 	
 public:

@@ -1,6 +1,5 @@
 
 
-
 void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<int, int> , int> & cooc) {
 	
     cooc.clear();
@@ -25,9 +24,6 @@ void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<in
         }
     }
 }
-
-
-
 
 
 void set_matrix_to_zero(int rows, int columns, deque<DD> & matrix) {
@@ -126,4 +122,13 @@ void assert_consecutive(DI & a) {
 }
 
 
+
+void update_map_wordnum(mapsi & word_number, mapis & number_word, string s) {
+	
+	if(word_number.find(s)==word_number.end()) {
+		int num=word_number.size();
+		word_number[s]=num;
+		number_word[num]=s;
+	}
+}
 

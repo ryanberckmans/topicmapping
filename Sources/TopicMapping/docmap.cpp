@@ -19,7 +19,6 @@ int main(int argc, char * argv[]) {
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
     
-    
     string corpus_file=P.string_ps.at("-f");
     double p_value=P.double_ps.at("-p");
     double min_filter=P.double_ps.at("-minf");
@@ -74,21 +73,9 @@ int main(int argc, char * argv[]) {
     // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
     C.write_short_beta_and_theta_files(doc_topic_best, topic_word_best, \
                                        "doc_topics.txt", "topic_words.txt", "topic_summary.txt", pt);
-    if(P.bool_ps.at("-fullout"))
         C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
     
-    // min_docs per subtopics
-    min_docs=P.int_ps.at("-subt");
-
-    if (P.bool_ps.at("-nos")==false) {
-        // it would be better to pass P instead of all this args (maybe)
-        second_level(min_filter, max_filter, min_docs, \
-                     Nruns, p_value, C, \
-                     doc_assignments, doc_topic_best, topic_word_best, \
-                     P.double_ps.at("-conv"), max(P.int_ps.at("-subdocs"), min_docs), \
-                     P.bool_ps.at("-fullout"), pt);
-    }
     return 0;
 }
 

@@ -6,32 +6,58 @@ void word_corpus::set_from_file(string filename) {
 	ifstream gin(filename.c_str());
 	
     multimap<int, int> occurences_wn;			// occurences - wn
+    mapsi word_number_all;
+    mapis number_word_all;
+    mapii wn_occurences_all;
+    
     
 	string buffer;
 	while(getline(gin, buffer)) {
         
 		doc newdoc;
-		newdoc.set_from_string(buffer, word_number_global, number_word_global);
+		newdoc.set_from_string(buffer, word_number_all, number_word_all);
 		IT_loop(mapii, itm, newdoc.wn_occurences) {			
-			int_histogram(itm->first, wn_occurences_global, itm->second);
+			int_histogram(itm->first, wn_occurences_all, itm->second);
 		}
 		if(newdoc.num_words>0)
 			docs.push_back(newdoc);
-        
+        else {
+            cerr<<"Some line is empty in "<<filename<<endl;
+            cerr<<"Please avoid that, because it is messing with the document indexing"<<endl;
+            cerr<<"Exiting..."<<endl;
+            exit(-1);
+        }
 	}
 	
-	total_words=0;
-	IT_loop(mapii, itm, wn_occurences_global) {			
+	int total_words=0;
+	IT_loop(mapii, itm, wn_occurences_all) {			
 		occurences_wn.insert(make_pair(itm->second,itm->first));
 		total_words+=itm->second;
 	}	
     
-	cout<<"total_words: "<<total_words<<" total unique words: "<<wn_occurences_global.size()<<endl;
+	cout<<"total_words: "<<total_words<<" total unique words: "<<wn_occurences_all.size()<<endl;
 	cout<<"#docs "<<docs.size()<<endl;
 	for(multimap<int, int>::iterator itm=occurences_wn.begin(); itm!=occurences_wn.end(); itm++) {			
-		pout<<number_word_global[itm->second]<<" "<<itm->second<<" "<<itm->first<<endl;
-	}	
+		pout<<number_word_all[itm->second]<<" "<<itm->second<<" "<<itm->first<<endl;
+	}
     
+    
+    
+    // word_occurrences is copied from wn_occurences_all
+	word_occurrences.clear();
+    IT_loop(mapii, itm, wn_occurences_all) {
+        word_occurrences.push_back(itm->second);
+        assert_ints(itm->first, word_occurrences.size()-1);
+    }
+
+    // word_strings is copied from number_word_all
+    word_strings.clear();	
+    IT_loop(mapis, itm, number_word_all) {
+        word_strings.push_back(itm->second);
+        assert_ints(itm->first, word_strings.size()-1);
+    }
+    
+
 	
     
 }
@@ -51,21 +77,10 @@ void word_corpus::write_corpus_file() {
 	}
 }
 
-/*
-void update_most_similar_words(map<int, pair<int, int> > & word_most_similar_word_weights, int w1, int w2, int weight) {
 
-  
-    if(word_most_similar_word_weights.count(w1)==0) {
-        word_most_similar_word_weights[w1]=make_pair(-1,0);
-    }
-    
-    if(word_most_similar_word_weights[w1].first==-1 or word_most_similar_word_weights[w1].second<weight) {
-        word_most_similar_word_weights[w1]=make_pair(w2, weight);
-    }
-}*/
-
-void word_corpus::null_model(double p_value, bool compute_only_first_order,\
-                             DI & links1, DI & links2, DD & weights, bool use_dotproduct, bool verbose) {
+void word_corpus::null_model(double p_value, \
+                             DI & links1, DI & links2, DD & weights, \
+                             bool use_dotproduct, bool verbose) {
 	
 	if(verbose) cout<<"null model. p-value: "<<p_value<<endl;
     // this is not efficient
@@ -98,7 +113,7 @@ void word_corpus::null_model(double p_value, bool compute_only_first_order,\
     // this requires that words are labelled from 0 and it is only
     // true is corpus was set from file
     //deque<bool> included_words;
-    //included_words.assign(wn_occurences_global.size(), false);
+    //included_words.assign(word_occurrences.size(), false);
     
 	int qfive_links=0;
 	int total_possible_links=0;
@@ -117,8 +132,8 @@ void word_corpus::null_model(double p_value, bool compute_only_first_order,\
 		
 		++total_possible_links;
 		
-		int k1=min(wn_occurences_global[it->first.first], wn_occurences_global[it->first.second]);
-		int k2=max(wn_occurences_global[it->first.first], wn_occurences_global[it->first.second]);
+		int k1=min(word_occurrences[it->first.first], word_occurrences[it->first.second]);
+		int k2=max(word_occurrences[it->first.first], word_occurrences[it->first.second]);
 		int qfive=DB.qfive(k1,k2,p_value);
 		
         
@@ -156,87 +171,11 @@ void word_corpus::null_model(double p_value, bool compute_only_first_order,\
 	}
     
     
-    //cout<<"qfive_links: "<<qfive_links<<endl; 
-    /*
-    for(map<int, pair<int, int> >:: iterator itm= word_most_similar_word_weights.begin(); \
-        itm!=word_most_similar_word_weights.end(); itm++) {
-        
-        // if the word was never included
-        if(included_words_si.find(itm->first)==included_words_si.end()) {
-            
-            if(itm->second.second>0) {
-                cerr<<"this should not happen "<<itm->second.second<<" "<<itm->first<<" "<<itm->second.first<<endl;
-            }
-            
-            links1.push_back(itm->first);
-            links2.push_back(itm->second.first);
-            weights.push_back(1.);
-            sigfile<<itm->first<<" "<<itm->second.first<<" "<<1.<<endl;
-            // cooc_nullterm is not updated_here
-            // also included_words should be removed
-        }
-    }
-    */
     
 	if(verbose) {
         cout<<"p-value: "<<p_value<<" significant link fraction: "<<double(qfive_links)/total_possible_links<<endl;
         cout<<"total possible links "<<total_possible_links<<endl;
     }
-    
-    if(compute_only_first_order==false) {
-        
-        if(number_word_global.size()==0) {
-            cerr<<"empty number_word_global. bug!"<<endl;
-            exit(-1);
-        }
-        
-        //ofstream filtered_out("filtered_out.txt");
-        //RANGE_loop(i, included_words) if(included_words[i]==false) {
-        //    filtered_out<<i<<" "<<number_word_global[i]<<endl;
-        //}
-        
-        // writing the second order network
-        ofstream out_second("second_order.txt");
-        //  only docs which have some significant words will be numbered
-        ofstream doc_numbers("doc_numbers.txt");
-        
-        RANGE_loop(i, docs) {
-            
-            bool significant_doc=false;
-            // a deque of just the word_numbers 
-            DI words_in_docs;        
-            IT_loop(mapii, itm, docs[i].wn_occurences) {
-                words_in_docs.push_back(itm->first);
-            }
-            
-            sort(words_in_docs.begin(), words_in_docs.end());
-            
-            RANGE_loop(j, words_in_docs) for(UI k=0; k<j; k++) {
-                
-                pair<int, int> word_pair(words_in_docs[k], words_in_docs[j]);
-                
-                if (word_pair.first>=word_pair.second) {
-                    cerr<<"error in sorting words"<<endl;
-                    exit(-1);
-                }
-                if(cooc.count(word_pair)==0 or cooc[word_pair]<=0) {
-                    cerr<<"error in word_pair"<<endl;
-                    exit(-1);
-                }
-                if(cooc_nullterm.count(word_pair)>0) {
-                    if(significant_doc==false) {
-                        significant_doc=true;
-                        out_second<<"Slice:"<<endl;
-                        doc_numbers<<i<<endl;
-                    }
-                    double K= 1. - double(cooc_nullterm[word_pair])/cooc[word_pair]; 
-                    out_second<<word_pair.first<<" "<<word_pair.second<<" ";
-                    out_second<<K*docs[i].wn_occurences[word_pair.first]*docs[i].wn_occurences[word_pair.second]<<endl;
-                }
-            }
-        }
-    }
-	
 }
 
 
@@ -274,88 +213,6 @@ void word_corpus::update_doc_num_thetas(DI & doc_numbers,
     }
 }
 
-void word_corpus::write_theta_file_from_multipart(string multipart_file, string doc_number_file) {
-    
-    
-    
-    // if this is true, all missing words
-    // are assigned to one single topic (-1)
-    bool just_one_noise_topic=true;
-    
-    
-    /*
-     the problem with the labels is that some 
-     docs might be missing because they are just noise
-     */
-    
-    //getting original document labels
-    
-    DI doc_numbers;
-    ifstream gin(doc_number_file.c_str());
-    int a;
-    while(gin>>a) {
-        doc_numbers.push_back(a);
-    }
-    gin.close();
-    
-    // for each doc (original label) a map of the topics used
-    map<int, mapid> doc_number_thetas;
-    
-    gin.open(multipart_file.c_str());
-    
-    string s;
-    int doc_number_multipart=0;
-    int_matrix word_partition;
-    
-    while(getline(gin, s)) {
-        
-        if(s!="Slice:") {
-            DI v;
-            cast_string_to_doubles(s, v);
-            // adding module to doc partition
-            word_partition.push_back(v);
-        } else {
-            // doc partition is done
-            update_doc_num_thetas(doc_numbers, just_one_noise_topic, doc_number_thetas, \
-                                  word_partition, doc_number_multipart);
-        }
-    }
-    // repeating for last doc
-    update_doc_num_thetas(doc_numbers, just_one_noise_topic, doc_number_thetas, \
-                          word_partition, doc_number_multipart);
-    
-    // setting theta doc for missing documents    
-    RANGE_loop(i, docs) if(doc_number_thetas.find(i)==doc_number_thetas.end()) {
-        mapid theta_doc;
-        if(just_one_noise_topic)
-            theta_doc[-1]=1;
-        else
-            theta_doc[-i-1]=1;
-        doc_number_thetas[i]=theta_doc;
-    }
-    
-    
-    // getting new names for topics
-    mapii new_names_for_topics;
-    for(map<int, mapid>::iterator itm= doc_number_thetas.begin(); itm!=doc_number_thetas.end(); itm++) {
-        IT_loop(mapid, itm2, itm->second) {
-            if(new_names_for_topics.count(itm2->first)==0) {
-                new_names_for_topics.insert(make_pair(itm2->first, new_names_for_topics.size()));
-            }
-        }
-    }
-    
-    cout<<"new names"<<endl;
-    prints(new_names_for_topics);
-    
-    // printing
-    ofstream pout("multi_part_thetas.txt");
-    for(map<int, mapid>::iterator itm= doc_number_thetas.begin(); itm!=doc_number_thetas.end(); itm++) {
-        //cout<<"printing "<<itm->first<<endl;
-        print_theta(itm->second, new_names_for_topics, pout);
-    }
-    
-}
 
 
 void word_corpus::get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics) {
@@ -560,7 +417,7 @@ double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid>
     // checking word_topic is correct
     for(map<int, mapii>::iterator itm = word_topic.begin(); itm!=word_topic.end(); itm++) {
         int occ=0; IT_loop(mapii, itm2, itm->second) occ+=itm2->second;
-        if(occ!=wn_occurences_global[itm->first]) {
+        if(occ!=word_occurrences[itm->first]) {
             cerr<<"occ is wrong for word  "<<itm->first<<endl;
             exit(-1);
         }
@@ -601,7 +458,7 @@ string word_corpus::get_topic_title(const mapid & topic_distr) {
     
     string title="";
     for(int i=0; i<min(20,int(pr_word.size())); i++){
-        title+=number_word_global[pr_word[i].second]+" ";
+        title+=word_strings[pr_word[i].second]+" ";
     }
     return title;
 
@@ -661,9 +518,9 @@ void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic, map
         sort(pr_word.begin(), pr_word.end());
         if(pout2.is_open()) pout2<<"topic: "<<itm->first<<" #words: "<<pr_word.size()<<" pt: "<<pt.at(itm->first)<<endl;
         RANGE_loop(i, pr_word){
-            pout1<<number_word_global[pr_word[i].second]<<":"<<-pr_word[i].first<<" ";
+            pout1<<word_strings[pr_word[i].second]<<":"<<-pr_word[i].first<<" ";
             if (i<20 and pout2.is_open()) {
-                pout2<<number_word_global[pr_word[i].second]<<" ";
+                pout2<<word_strings[pr_word[i].second]<<" ";
             } 
         }
         pout1<<endl;
@@ -711,9 +568,9 @@ void word_corpus::write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, 
     double smoothing_par=1e-4;
     
     deque<DD> betas;
-    set_matrix_to_zero(topic_names.size(), wn_occurences_global.size(), betas);
+    set_matrix_to_zero(topic_names.size(), word_occurrences.size(), betas);
     
-    double smoothing_par_per_word=smoothing_par/(double(wn_occurences_global.size()));
+    double smoothing_par_per_word=smoothing_par/(double(word_occurrences.size()));
     
     IT_loop(mapii, itm, topic_names) {
         
@@ -763,10 +620,10 @@ void word_corpus::get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_m
     // for each topic, the probability we use it in the null model
     mapid topic_pr;
     
-    IT_loop(mapii, itm, wn_occurences_global) {
-        if (hard_mems.count(itm->first)>0) {
-            int topic_num=hard_mems.at(itm->first);
-            int_histogram(topic_num, topic_pr, double(itm->second));
+    RANGE_loop(wn, word_occurrences) {
+        if (hard_mems.count(wn)>0) {
+            int topic_num=hard_mems.at(wn);
+            int_histogram(topic_num, topic_pr, double(word_occurrences[wn]));
         }
     }
     
@@ -881,7 +738,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, double min_filter, doub
         // filtering 
         double loglikelihood=likelihood_filter(word_topic, doc_topic, topic_word, pt, hard_mems, filtering_par, doc_prevalent_topics, doc_assignments);
         
-        //double aic= (docs.size()+wn_occurences_global.size())*(topic_word.size()-1) - loglikelihood;
+        //double aic= (docs.size()+word_occurrences.size())*(topic_word.size()-1) - loglikelihood;
         if(verbose) {
             cout<<"filtering: "<<filtering_par<<" loglikelihood: "<<loglikelihood<<" #topics: "<<topic_word.size()<<endl;
         }
@@ -929,11 +786,11 @@ void word_corpus::write_partition(mapii & hard_mems) {
     for(map<int, DI>::iterator itm= partition.begin(); itm!=partition.end(); itm++) {
         deque<pair<int, int> > occ_wn;
         RANGE_loop(i, itm->second) {
-            occ_wn.push_back(make_pair(-wn_occurences_global.at(itm->second[i]), itm->second[i]));
+            occ_wn.push_back(make_pair(-word_occurrences.at(itm->second[i]), itm->second[i]));
         }
         sort(occ_wn.begin(), occ_wn.end());
         RANGE_loop(i, occ_wn) {
-            pout<<number_word_global.at(occ_wn[i].second)<<" ";
+            pout<<word_strings.at(occ_wn[i].second)<<" ";
         }
         pout<<endl;
     }
@@ -963,8 +820,7 @@ double word_corpus::dimap(double min_filter, double max_filter, int min_docs, \
         DI links2;
         DD weights;
         // running null model
-        null_model(p_value, true,\
-                     links1, links2, weights, true, level==0);
+        null_model(p_value, links1, links2, weights, true, level==0);
         
         // collecting infomap initial partition
         if(links1.size()==0 and level==0) {
@@ -1022,74 +878,8 @@ void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & to
 }
 
 
-void set_corpuses_from_topics(deque<mapii> & doc_assignments, \
-                              map<int, word_corpus> & old_topic_corpus, \
-                              map<int, mapii> & topic_old_docs, word_corpus & oC) {
-    
-    
-    
-    // doc_topic_newid[doc][topic] is the new id of the doc in that corpus
-    deque<mapii> doc_topic_newid;
-    
-    RANGE_loop(i, doc_assignments) {
-        
-        mapii topic_newid;
-        IT_loop(mapii, itm, doc_assignments[i]) {
-            
-            // itm->second is the topic
-            // itm->first is the word
-            // i is the doc
-            
-            // adding this topic to the corpuses
-            if(old_topic_corpus.count(itm->second)==0) {
-                word_corpus word_corpus_;
-                old_topic_corpus[itm->second]=word_corpus_;
-            }
-            
-            // adding this doc to the corpus
-            // it is the first time, we see this topic for this doc
-            if(topic_newid.count(itm->second)==0) {
-                topic_newid[itm->second]=old_topic_corpus[itm->second].docs.size();
-                doc doc_;
-                old_topic_corpus[itm->second].docs.push_back(doc_);
-            }
-            
-            old_topic_corpus[itm->second].docs[topic_newid[itm->second]].wn_occurences.insert(make_pair(itm->first, oC.docs[i].wn_occurences[itm->first]));
-        }
-        // storing the doc ids
-        doc_topic_newid.push_back(topic_newid);
-    }
-    
-    invert_doc_topic_newid(doc_topic_newid, topic_old_docs);
-
-    // asserting old_topic_corpus have labels in order
-    for(UI i=0; i<old_topic_corpus.size(); i++) {
-        if(old_topic_corpus.count(i)==0) {
-            cerr<<"error in second level"<<endl;
-            exit(-1);
-        }
-    } 
-    
-}
 
 
-
-void word_corpus::fix_data_structs() {
-    
-    total_words=0;
-    RANGE_loop(i, docs) {
-        
-        //cout<<"doc "<<i<<endl;
-        //prints(docs[i].wn_occurences);
-        
-        docs[i].num_words=0;
-        IT_loop(mapii, itm, docs[i].wn_occurences) {
-            docs[i].num_words+=itm->second;
-            int_histogram(itm->first, wn_occurences_global, itm->second);
-        }
-        total_words+=docs[i].num_words;
-    }
-}
 
 
 
