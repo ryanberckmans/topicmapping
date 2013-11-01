@@ -132,3 +132,14 @@ void update_map_wordnum(mapsi & word_number, mapis & number_word, string s) {
 	}
 }
 
+
+void print_theta(mapid & theta_doc, mapii & new_names_for_topics, ostream & pout) {
+    
+    DD thetas;
+    thetas.assign(new_names_for_topics.size(), 0.);
+    IT_loop(mapid, itm, theta_doc) {
+        thetas[new_names_for_topics[itm->first]]=itm->second;
+    }
+    prints(thetas, pout);
+}
+

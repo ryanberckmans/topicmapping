@@ -78,11 +78,13 @@ void word_corpus::write_corpus_file() {
 }
 
 
-void word_corpus::null_model(double p_value, \
-                             DI & links1, DI & links2, DD & weights, \
-                             bool use_dotproduct, bool verbose) {
+void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
 	
-	if(verbose) cout<<"null model. p-value: "<<p_value<<endl;
+    
+    bool use_dotproduct=true;
+    bool verbose=true;
+    
+	if(verbose) cout<<"null model. p-value: "<<p_value_<<endl;
     // this is not efficient
 	// EFFICIENCY-ALERT
     
@@ -134,7 +136,7 @@ void word_corpus::null_model(double p_value, \
 		
 		int k1=min(word_occurrences_[it->first.first], word_occurrences_[it->first.second]);
 		int k2=max(word_occurrences_[it->first.first], word_occurrences_[it->first.second]);
-		int qfive=DB.qfive(k1,k2,p_value);
+		int qfive=DB.qfive(k1,k2,p_value_);
 		
         
         //update_most_similar_words(word_most_similar_word_weights, it->first.first, it->first.second, it->second- qfive);
@@ -173,22 +175,13 @@ void word_corpus::null_model(double p_value, \
     
     
 	if(verbose) {
-        cout<<"p-value: "<<p_value<<" significant link fraction: "<<double(qfive_links)/total_possible_links<<endl;
+        cout<<"p-value: "<<p_value_<<" significant link fraction: "<<double(qfive_links)/total_possible_links<<endl;
         cout<<"total possible links "<<total_possible_links<<endl;
     }
 }
 
 
 
-void print_theta(mapid & theta_doc, mapii & new_names_for_topics, ostream & pout) {
-    
-    DD thetas;
-    thetas.assign(new_names_for_topics.size(), 0.);
-    IT_loop(mapid, itm, theta_doc) {
-        thetas[new_names_for_topics[itm->first]]=itm->second;
-    }
-    prints(thetas, pout);
-}
 
 
 
@@ -446,23 +439,6 @@ double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid>
 }
 
 
-string word_corpus::get_topic_title(const mapid & topic_distr) {
-    
-    // returning the most probable 20 words in this topic
-    
-    deque<pair<double, int> > pr_word;
-    IT_const_loop(mapid, itm2, topic_distr) {
-        pr_word.push_back(make_pair(-itm2->second, itm2->first));
-    }
-    sort(pr_word.begin(), pr_word.end());
-    
-    string title="";
-    for(int i=0; i<min(20,int(pr_word.size())); i++){
-        title+=word_strings_[pr_word[i].second]+" ";
-    }
-    return title;
-
-}
 
 
 void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
@@ -606,7 +582,7 @@ double get_z_score(int N, double p, int real) {
 }
 
 
-void word_corpus::get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems, int min_docs) {
+void word_corpus::get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems) {
     
     /* first I need to compute the probability of using a topic
      in the null model, where we draw words at random according to 
@@ -631,7 +607,7 @@ void word_corpus::get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_m
     // the words in that topic
     normalize_mapid(topic_pr);
     
-    double min_number_of_docs=double(min_docs);
+    double min_number_of_docs=double(min_docs_);
     // topics which are used in a very few documents
     SI banned_topics;
     IT_loop(mapid, itm, topic_pr) if( itm->second < min_number_of_docs / docs_.size() ) {
@@ -699,7 +675,7 @@ double compute_eff_num_topics(const mapid & pt) {
 }
 
 
-double word_corpus::optimal_filtering(mapii & hard_mems, double min_filter, double max_filter, int min_docs, \
+double word_corpus::optimal_filtering(mapii & hard_mems, \
                                       mapid & pt_best, \
                                       deque<mapid> & doc_topic_best, \
                                       map<int, mapid> & topic_word_best, \
@@ -709,7 +685,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, double min_filter, doub
     // for each document, the topic which we believe
     // the document mostly belongs to
     DI doc_prevalent_topics;
-    get_prevalent_topics(doc_prevalent_topics, hard_mems, min_docs);    
+    get_prevalent_topics(doc_prevalent_topics, hard_mems);    
     
     // this is the starting point (the same for all values of filtering)
     deque<mapid> doc_topic_initial;
@@ -724,7 +700,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, double min_filter, doub
     
     double eff_ntopics=0.;
     
-    for(double filtering_par=min_filter; filtering_par<max_filter+0.01; filtering_par+=0.01) {
+    for(double filtering_par=min_filter_; filtering_par<max_filter_+0.01; filtering_par+=0.01) {
         
         map<int, mapii> word_topic; // for each word, {topic:usage}
         deque<mapid> doc_topic;     // for each doc, {topic:probability}
@@ -812,6 +788,8 @@ double word_corpus::dimap(int Nruns, \
     doc_assignments.clear();
     pt.clear();
     
+    bool verbose=true;
+    
     mapii hard_memberships;
     if (partition_file_.size()==0) {
         
@@ -819,17 +797,18 @@ double word_corpus::dimap(int Nruns, \
         DI links2;
         DD weights;
         // running null model
-        null_model(p_value_, links1, links2, weights, true);
+        null_model(links1, links2, weights);
         
         // collecting infomap initial partition
-        if(links1.size()==0 and level==0) {
+        if(links1.size()==0) {
             cerr<<"empty graph"<<endl;
             cerr<<"Please try again with a bigger p-value"<<endl;
             exit(-1);
         }
+        
         get_infomap_partition_from_edge_list(Nruns, irand(100000000), \
                                              links1, links2, weights, \
-                                             hard_memberships);
+                                             hard_memberships, verbose);
         links1.clear();
         links2.clear();
         weights.clear();
@@ -837,14 +816,14 @@ double word_corpus::dimap(int Nruns, \
     } else {
         cout<<"reading partition from file: "<<partition_file_<<endl;
         int_matrix ten;
-        get_partition_from_file(partition_file, ten);
+        get_partition_from_file(partition_file_, ten);
         RANGE_loop(i, ten) RANGE_loop(j, ten[i]) hard_memberships[ten[i][j]]=i;
     }
     
     // max-likelihood filter
     double eff_ntopics=optimal_filtering(hard_memberships, 
                                          pt, doc_topic_best,
-                                         topic_word_best, doc_assignments);
+                                         topic_word_best, doc_assignments, verbose);
                         
     return eff_ntopics;
 
@@ -874,135 +853,5 @@ void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & to
 
 
 
-
-
-
-int sample_topic(DD & probs, DI & topics, double & sum) {
-    
-    // check this
-    //prints(topics);
-    //prints(probs);
-    int nn=lower_bound(probs.begin(), probs.end(), ran4()*sum)-probs.begin();
-    //cout<<"nn:: "<<nn<<" "<<topics.size()<<endl;
-    return topics[nn];
-    
-}
-
-void word_corpus::gibbs_sampling(deque<mapii> & doc_assignments) {
-    
-    
-    // you probably need arrays
-    
-    
-    double alpha_hyper=0.01;
-    double beta_hyper=0.01;
-    
-    deque<mapii> n_d_topic;
-    map<int, mapii> n_w_topic;
-    mapii n_topic;
-    
-    if(doc_assignments.size()!=docs_.size()) {  cerr<<"doc_assignments size does not match"<<endl; exit(-1);  }
-    
-    
-    // initialization
-    RANGE_loop(doc_number, doc_assignments) {
-        
-        mapii d_topic;
-        IT_loop(mapii, itm, doc_assignments[doc_number]) {            
-            
-            //cout<<"-------------- "<<doc_number<<endl;
-            //prints(doc_assignments[i]);
-            int_histogram(itm->second, d_topic);
-            if(n_w_topic.count(itm->first)==0) {
-                mapii new_mapii;
-                n_w_topic[itm->first]=new_mapii;
-            }
-            int_histogram(itm->second, n_w_topic[itm->first]);
-            int_histogram(itm->second, n_topic);
-        }
-        n_d_topic.push_back(d_topic);
-    }
-    
-    // sampling
-    for(int iter=0; iter<1000; iter++) RANGE_loop(doc_number, doc_assignments) {
-        
-        //cout<<"-------------- "<<doc_number<<" "<<n_d_topic[doc_number].size()<<endl;
-        
-        IT_loop(mapii, itm, doc_assignments[doc_number]) {            
-            
-            int topic= itm->second;
-            int word= itm->first;
-            // make sure they are positive
-            n_d_topic[doc_number].at(topic)-=1;
-            n_w_topic[word].at(topic)-=1;
-            n_topic.at(topic)-=1;
-            
-            if(n_d_topic[doc_number][topic]==0) n_d_topic[doc_number].erase(topic);
-            if(n_w_topic[word][topic]==0) n_w_topic[word].erase(topic);
-            if(n_topic[topic]==0) n_topic.erase(topic);
-            
-            // looping over doc_topics
-            DI topics;
-            DD probs;
-            double sum=0.;
-            IT_loop(mapii, itm2, n_d_topic[doc_number]) {
-                double pr= (itm2->second + alpha_hyper) * (n_w_topic[word][itm2->first]+ beta_hyper);
-                probs.push_back(sum+pr);
-                topics.push_back(itm2->first);
-                sum+=pr;
-            }
-            // check  norm
-            topic=sample_topic(probs, topics, sum);
-            itm->second=topic;
-            int_histogram(topic, n_d_topic[doc_number]);
-            int_histogram(topic, n_w_topic[word]);
-            int_histogram(topic, n_topic);            
-        }
-    }
-    
-    
-    // topics can be empty... check this
-    
-    deque<mapid> n_d_topic_d;
-    map<int, mapid> n_topic_w_d;
-    
-    
-    
-    RANGE_loop(doc_number, n_d_topic) {
-        mapid new_mapid;
-        IT_loop(mapii, itm, n_d_topic[doc_number]) new_mapid[itm->first]=itm->second;
-        cout<<doc_number<<" ---- "<<n_d_topic[doc_number].size()<<endl;
-        normalize_mapid(new_mapid);
-        n_d_topic_d.push_back(new_mapid);
-    }
-    
-    
-    for (map<int, mapii>::iterator word_itm= n_w_topic.begin(); 
-         word_itm!=n_w_topic.end(); word_itm++) {
-        
-        IT_loop(mapii, itm2, word_itm->second) {
-            
-            int word= word_itm->first;
-            int topic= itm2->first;
-            int count= itm2->second;
-            if(n_topic_w_d.count(topic)==0) {
-                mapid new_mapid;
-                n_topic_w_d[topic]=new_mapid;
-            }
-            n_topic_w_d[topic][word]=count;
-        }
-    }
-    
-    for(map<int, mapid>::iterator topic_itm= n_topic_w_d.begin(); 
-        topic_itm!=n_topic_w_d.end(); topic_itm++) {
-        
-        normalize_mapid(topic_itm->second);
-        
-    }
-    
-    
-    write_beta_and_theta_files(n_d_topic_d, n_topic_w_d, "thetas_gs.txt", "betas_gs.txt");
-    
-}
 
 

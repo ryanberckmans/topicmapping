@@ -56,8 +56,7 @@ bool separate_strings_tree_file(string &b, deque<string> & v) {
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             deque<int> links1, deque<int> links2,
                                             const deque<double> & weights,
-                                            mapii & hard_memberships, bool verbose,
-                                            const double & convergence_precision) {
+                                            mapii & hard_memberships, bool verbose) {
     /*
      same function as below
      but the input is the edge list
@@ -173,7 +172,7 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
 
 double get_infomap_partition_from_file(int Ntrials, int random_seed, \
                                        string filename, mapii & hard_memberships, 
-                                       bool verbose, const double & convergence_precision) {
+                                       bool verbose) {
     
     ifstream gin(filename.c_str());
     string s;
@@ -194,7 +193,7 @@ double get_infomap_partition_from_file(int Ntrials, int random_seed, \
     
     return get_infomap_partition_from_edge_list(Ntrials, \
                             random_seed, links1, links2, weights, \
-                            hard_memberships, verbose, convergence_precision);
+                            hard_memberships, verbose);
 }
 
 

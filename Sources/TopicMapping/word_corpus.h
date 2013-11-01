@@ -48,9 +48,7 @@ public:
 	void write_corpus_file();
 
     // computing the network 
-	void null_model(double p_value, \
-                    DI & links1, DI & links2, DD & weights, \
-                    bool use_dotproduct, bool verbose);
+	void null_model(DI & links1, DI & links2, DD & weights);
     
     
     void write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
@@ -58,24 +56,15 @@ public:
     void write_short_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
                                           string theta_file, string beta_file, string beta_file_short, \
                                           mapid & pt);
-
-
-    double dimap(double min_filter, double max_filter, int min_docs, \
-               int Nruns, double p_value, string partition_file, \
-               mapid & pt, \
-               deque<mapid> & doc_topic_best, \
-               map<int, mapid> & topic_word_best, \
-               deque<mapii> & doc_assignments,\
-               int level, const double & convergence_precision);
-    
-    string get_topic_title(const mapid & topic_distr);
-    
-    
+    double dimap(int Nruns, \
+                 mapid & pt, \
+                 deque<mapid> & doc_topic_best, \
+                 map<int, mapid> & topic_word_best, \
+                 deque<mapii> & doc_assignments);
     
     double lda_model(deque<mapid> & doc_topic, 
                      map<int, mapid> & topic_word);
 
-    
     
 private:
     
@@ -95,9 +84,9 @@ private:
                              const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics, \
                              deque<mapii> & doc_assignments);
     void get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics);
-    void get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems, int min_docs);
+    void get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems);
 
-    double optimal_filtering(mapii & hard_mems, double min_filter, double max_filter, int min_docs, \
+    double optimal_filtering(mapii & hard_mems, \
                              mapid & pt_best, \
                              deque<mapid> & doc_topic_best, \
                              map<int, mapid> & topic_word_best, \
@@ -122,7 +111,6 @@ private:
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
-    void gibbs_sampling(deque<mapii> & doc_assignments);    
     double run_em();
     void set_class_words_to_zeros();
     void initialize_lda_data(deque<mapid> & doc_topic, map<int, mapid> & topic_word);
@@ -171,7 +159,7 @@ word_corpus::word_corpus(double min_filter_p, double max_filter_p,
     cout<<"*** p-value: "<<p_value_<<endl;
     cout<<"*** min filter: "<<min_filter_<<endl;
     cout<<"*** max filter: "<<max_filter_<<endl;
-    cout<<"*** min docs_ per topic: "<<min_docs_<<endl;
+    cout<<"*** min docs per topic: "<<min_docs_<<endl;
     if(partition_file_.size()>0)
         cout<<"***  partition file: "<<partition_file_<<endl;
     
