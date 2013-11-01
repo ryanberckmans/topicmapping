@@ -9,7 +9,7 @@ typedef map<int, mapid> mapimapid;
 #include "log_table.h"
 
 // TODO
-// in class doc, wn_occurences is not efficient
+// in class doc, wn_occurences_ is not efficient
 
 
 
@@ -18,14 +18,14 @@ class doc {
 
 public:
 	
-	doc(){num_words=0;};
+	doc(){num_words_=0;};
 	~doc(){};
 	
-	void set_from_string(string s, mapsi & word_number_global, mapis & number_word_global);
+	void set_from_string(string s, mapsi & word_number_all, mapis & number_word_all);
     void compute_thetas(int_matrix & word_partition, mapid & theta_doc, int black_module);
 
-	UI num_words;			// num_words in the document
-	mapii wn_occurences;	// word-number - occurences
+	UI num_words_;			// num_words_ in the document
+	mapii wn_occurences_;	// word-number - occurences
     
 };
 
@@ -36,8 +36,10 @@ public:
 class word_corpus {
 
 public:
-	
-	word_corpus(){};
+
+	word_corpus(double min_filter_p, double max_filter_p, 
+                double p_value_p, int min_docs_p, 
+                string partition_file_p, string corpus_file_p);
 	~word_corpus(){};
 
 
@@ -104,10 +106,18 @@ private:
     
     
     // basic data structures
-    deque<string> word_strings;		// word_strings[wn] = "word_in_text"	
-	DI word_occurrences;            // word_occurrences[wn] = occurences
-	deque<doc> docs;                // documents
+    deque<string> word_strings_;		// word_strings_[wn] = "word_in_text"	
+	DI word_occurrences_;            // word_occurrences_[wn] = occurences
+	deque<doc> docs_;                // documents
     
+    
+    // parameters
+    double max_filter_;
+    double min_filter_;;
+    double p_value_;
+    int min_docs_;;
+    string partition_file_;
+
     
     // lda functions
     double lda_inference(int doc_number);
@@ -120,15 +130,58 @@ private:
     
     // lda data structures
     // (add explanation here)
-    deque<DD> phis_ldav;
-    deque<DD> betas_ldav;
-    DD alphas_ldav;
-    deque<DD> class_word_ldav;
-    DD class_total_ldav;
-    deque<DD> gammas_ldav;
-    int num_topics_ldav;
+    deque<DD> phis_ldav_;
+    deque<DD> betas_ldav_;
+    DD alphas_ldav_;
+    deque<DD> class_word_ldav_;
+    DD class_total_ldav_;
+    deque<DD> gammas_ldav_;
+    int num_topics_ldav_;
     
 };
+
+
+
+
+word_corpus::word_corpus(double min_filter_p, double max_filter_p, 
+                         double p_value_p, int min_docs_p, 
+                         string partition_file_p, string corpus_file_p) {
+    
+    
+    max_filter_=min(0.51, max_filter_p);
+    min_filter_=max(0., min_filter_p);
+    p_value_=p_value_p;
+    min_docs_=min_docs_p;
+    partition_file_=partition_file_p;
+    
+    
+    // checking parameters
+    if(p_value_<=0) {
+        cerr<<"p-value cannot be smaller than 0: "<<p_value_<<endl;
+        exit(-1);
+    }
+    
+    if(min_filter_>max_filter_) {
+        cerr<<"ERROR: max_filter is smaller than min_filter"<<endl;
+        exit(-1);
+    }
+    
+    
+    cout<<"*** corpus file: "<<corpus_file_p<<endl;
+    cout<<"*** p-value: "<<p_value_<<endl;
+    cout<<"*** min filter: "<<min_filter_<<endl;
+    cout<<"*** max filter: "<<max_filter_<<endl;
+    cout<<"*** min docs_ per topic: "<<min_docs_<<endl;
+    if(partition_file_.size()>0)
+        cout<<"***  partition file: "<<partition_file_<<endl;
+    
+    
+    // setting docs_ and basic structures
+    set_from_file(corpus_file_p);
+}
+
+
+
 
 #include "doc.cpp"
 #include "sig_topics.cpp"

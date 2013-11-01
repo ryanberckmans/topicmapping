@@ -43,7 +43,7 @@ int main(int argc, char * argv[]) {
     cout<<"*** p-value: "<<p_value<<endl;
     cout<<"*** min filter: "<<min_filter<<endl;
     cout<<"*** max filter: "<<max_filter<<endl;
-    cout<<"*** min docs per topic: "<<min_docs<<endl;
+    cout<<"*** min docs_ per topic: "<<min_docs<<endl;
     cout<<"*** convergence parameter: "<<P.double_ps.at("-conv")<<endl;
     if (partition_file.size()>0)
         cout<<"***  partition file: "<<partition_file<<endl;

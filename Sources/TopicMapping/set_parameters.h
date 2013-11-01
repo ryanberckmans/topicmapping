@@ -84,13 +84,13 @@ void parameters::error_statement(char * argv[]) {
 
 	// here there could be a front statement
     cerr<<"This program is to find topics in a set of documents using network ";
-    cerr<<"clustering (Infomap) and PLSA-like likelihood local optimization."<<endl<<endl;
+    cerr<<"clustering (Infomap) and the LDA model (variational optimization)."<<endl<<endl;
     
 	for(deque<pair<string, string> >::iterator itm=flag_statement.begin(); itm!=flag_statement.end(); itm++) {
 		cerr<<itm->first<<" "<<itm->second<<endl;
 	}
     cerr<<"Example: "<<endl<<endl;
-    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -t 100  -subt 10 -p 0.05 -conv 1e-5 -r 2"<<endl;
+    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -t 100 -p 0.05 -r 2"<<endl;
     cerr<<"Please look at ReadMe.pdf for more info."<<endl;
 	exit(-1);
 }
@@ -188,25 +188,15 @@ void parameters::printing(ostream & pout) {
 
 
 void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
-    
-    // Increasing this value, documents might be assigned to fewer topics (and words to more topics)
-    // This can be helpful to avoid topics which might be very small, and it might be helpful to merge them with their most similar topic.
-    //Higher values make the algorithm more accurate but slower. For small corpuses, the program should be very fast and we reccomend to increase this value.
-    
+        
     P.set_string("-f", "nofile", true, "[string]: name of the corpus file (plain txt file)");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
     P.set_int("-r", 1, false, "[int]: number of runs for Infomap. Default is 1.");
     P.set_int("-t", 0., false, "[int]: minimum number of documents per topic. Default is 0, but 10 is recommended for big corpuses.");    
-    P.set_int("-subt", 0., false, "[int]: minimum number of documents per subtopic. Default is 0, but 10 is recommended for big corpuses.");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
     P.set_double("-maxf", 0.51, false, "[double] maximum value for the likelihood filter.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
-	P.set_double("-conv", 1e-8, false, "[double]: if infomap relative gain is smaller than this, Infomap stops. Default: 1e-8.");
-	P.set_bool("-nos", false, false, ": no subtopics are provided.");
-    P.set_int("-subdocs", 10, false, "[int]: minimum size of each subtopic (#docs). Default: 10.");
-    //P.set_int("-subwords", 10, false, "[int]: minimum size of each subtopic (#words). Default: 10.");
-    P.set_bool("-fullout", false, false, ": writes thetas and betas file as well. Not recommended for big corpuses (lots of zeros)");
 
     
 	P.set_from_argv(argc, argv);

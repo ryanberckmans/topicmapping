@@ -33,18 +33,18 @@ void word_corpus::optimize_alpha() {
     
     DD sum_gamma_over_topics;
     // sum_gamma_over_topics[i] = digamma(sum_k) 
-    sum_gamma_over_topics.assign(gammas_ldav.size(), 0.);
+    sum_gamma_over_topics.assign(gammas_ldav_.size(), 0.);
     // assert that sum_gamma_over_topics is simply
     // the digamma(number of words + sum of priors)
     
-    RANGE_loop(i, gammas_ldav) {
-        ps.push_back(gammas_ldav[i]);
+    RANGE_loop(i, gammas_ldav_) {
+        ps.push_back(gammas_ldav_[i]);
         double sum_=normalize_one(ps[i]);
         sum_gamma_over_topics[i]=digamma(sum_);
     }
     
-    if(gammas_ldav.size()==0) {
-        cerr<<"gammas_ldav are empty in optimize_alpha"<<endl; exit(-1);
+    if(gammas_ldav_.size()==0) {
+        cerr<<"gammas_ldav_ are empty in optimize_alpha"<<endl; exit(-1);
     }
 
     // this is only important the first time 
@@ -55,10 +55,10 @@ void word_corpus::optimize_alpha() {
     //-------------------------- BEGIN INITIALIZATION --------------------
     // average_ps[k] is the average over i of p[i][k]
     DD average_ps;
-    average_ps.assign(num_topics_ldav, 0.);
+    average_ps.assign(num_topics_ldav_, 0.);
 
     DD average_square_ps;
-    average_square_ps.assign(num_topics_ldav, 0.);
+    average_square_ps.assign(num_topics_ldav_, 0.);
 
     RANGE_loop(i, ps) {
         RANGE_loop(k, ps[i]) {
@@ -67,32 +67,32 @@ void word_corpus::optimize_alpha() {
         }
     }
     
-    RANGE_loop(k, average_ps) average_ps[k]/= gammas_ldav.size();
-    RANGE_loop(k, average_ps) average_square_ps[k]/= gammas_ldav.size();
+    RANGE_loop(k, average_ps) average_ps[k]/= gammas_ldav_.size();
+    RANGE_loop(k, average_ps) average_square_ps[k]/= gammas_ldav_.size();
     //-------------------------- INITIALIZATION END --------------------
 
 
 
-    // 1/gammas_ldav.size() x sum_i [ digamma(gammas_ldav[i][k]) - sum_gamma_over_topics[i]] 
+    // 1/gammas_ldav_.size() x sum_i [ digamma(gammas_ldav_[i][k]) - sum_gamma_over_topics[i]] 
     DD gamma_terms;
-    gamma_terms.assign(num_topics_ldav, 0.);
+    gamma_terms.assign(num_topics_ldav_, 0.);
 
     
     RANGE_loop(i, ps) {
         RANGE_loop(k, ps[i]) {
-            // gammas_ldav should not never be so small because of the prior
-            if(gammas_ldav[i][k]>1e-10)
-                gamma_terms[k]+= digamma(gammas_ldav[i][k]) - sum_gamma_over_topics[i];
+            // gammas_ldav_ should not never be so small because of the prior
+            if(gammas_ldav_[i][k]>1e-10)
+                gamma_terms[k]+= digamma(gammas_ldav_[i][k]) - sum_gamma_over_topics[i];
             else {
                 gamma_terms[k]+= -1e10 -sum_gamma_over_topics[i];
-                cerr<<"very small gamma value:: "<<gammas_ldav[i][k]<<endl;
+                cerr<<"very small gamma value:: "<<gammas_ldav_[i][k]<<endl;
             }
 
         }
     }
     
     
-    RANGE_loop(k, average_ps) gamma_terms[k]/= gammas_ldav.size();
+    RANGE_loop(k, average_ps) gamma_terms[k]/= gammas_ldav_.size();
     
     cout<<"average_ps"<<endl;
     prints(average_ps);
@@ -134,7 +134,7 @@ void word_corpus::optimize_alpha() {
     // insert error check
     cout<<"alphas final"<<endl;
     prints(alphas);
-    alphas_ldav=alphas;
+    alphas_ldav_=alphas;
     
     
 }

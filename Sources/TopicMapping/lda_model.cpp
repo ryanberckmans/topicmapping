@@ -4,22 +4,22 @@
 void word_corpus::set_class_words_to_zeros() {
     
     
-    // initializing class_word_ldav and class_total_ldav
-    // class_word_ldav[topic][wn] 
-    // class_total_ldav[topic]
+    // initializing class_word_ldav_ and class_total_ldav_
+    // class_word_ldav_[topic][wn] 
+    // class_total_ldav_[topic]
     
 
     // ============ this should be made more efficient =======
-    class_word_ldav.clear();
-    class_total_ldav.clear();
+    class_word_ldav_.clear();
+    class_total_ldav_.clear();
 
     
     DD void_dd_class;
-    void_dd_class.assign(word_occurrences.size(), 0.);
-    for(int k=0; k<num_topics_ldav; k++) {
-        class_word_ldav.push_back(void_dd_class);
+    void_dd_class.assign(word_occurrences_.size(), 0.);
+    for(int k=0; k<num_topics_ldav_; k++) {
+        class_word_ldav_.push_back(void_dd_class);
     }
-    class_total_ldav.assign(num_topics_ldav, 0.);
+    class_total_ldav_.assign(num_topics_ldav_, 0.);
     
 }
 
@@ -66,39 +66,39 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     //lda data structures
     
-    num_topics_ldav=all_topics.size();
-    cout<<"number of topics for lda em: "<<num_topics_ldav<<endl;
+    num_topics_ldav_=all_topics.size();
+    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
     
-    phis_ldav.clear();
-    betas_ldav.clear();
-    alphas_ldav.clear();
-    class_word_ldav.clear();
-    class_total_ldav.clear();
-    gammas_ldav.clear();
+    phis_ldav_.clear();
+    betas_ldav_.clear();
+    alphas_ldav_.clear();
+    class_word_ldav_.clear();
+    class_total_ldav_.clear();
+    gammas_ldav_.clear();
     
-    // betas_ldav is inverted respect with the original code
+    // betas_ldav_ is inverted respect with the original code
     // I think it's better this way (one long vector of short vectors rather 
     // than few long vectors)
-    // should I do the same thing on class_word_ldav?
+    // should I do the same thing on class_word_ldav_?
     
     DD void_dd_numtops;
-    void_dd_numtops.assign(num_topics_ldav, 0.);
+    void_dd_numtops.assign(num_topics_ldav_, 0.);
     
-    RANGE_loop(wn, word_occurrences) {
-        betas_ldav.push_back(void_dd_numtops);
+    RANGE_loop(wn, word_occurrences_) {
+        betas_ldav_.push_back(void_dd_numtops);
         // this could be made more efficient (making it depend on single documents)
-        phis_ldav.push_back(void_dd_numtops);
+        phis_ldav_.push_back(void_dd_numtops);
     }
     
     
     // TODO 
-    // the initialization of alphas_ldav is quite arbitrary 
+    // the initialization of alphas_ldav_ is quite arbitrary 
     // and should be done
     // using doc_topic
-    alphas_ldav.assign(num_topics_ldav, 0.01);
+    alphas_ldav_.assign(num_topics_ldav_, 0.01);
     
-    // copying topic_word in betas_ldav
-    // this should be avoided and pass betas_ldav directly
+    // copying topic_word in betas_ldav_
+    // this should be avoided and pass betas_ldav_ directly
     // to the lda model
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
@@ -106,7 +106,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         int word_wn=0;
         IT_loop(mapid, itm2, topic_itm->second) { 
             assert_ints(itm2->first, word_wn);
-            betas_ldav[word_wn][topic_itm->first]=log(itm2->second);
+            betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
             ++word_wn;
         }
     }
@@ -115,23 +115,23 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     set_class_words_to_zeros();
     
     // initializing gammas
-    RANGE_loop(doc_number, docs) {
-        gammas_ldav.push_back(void_dd_numtops);
+    RANGE_loop(doc_number, docs_) {
+        gammas_ldav_.push_back(void_dd_numtops);
     }
     
     
     cout<<"============== DIMENSIONS =============="<<endl;
-    cout<<"number of topics for lda em: "<<num_topics_ldav<<endl;
+    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
     
-    cout<<"phis_ldav "<<phis_ldav.size()<<" x "<<phis_ldav[0].size()<<endl;
-    cout<<"betas_ldav "<<betas_ldav.size()<<" x "<<betas_ldav[0].size()<<endl;
+    cout<<"phis_ldav_ "<<phis_ldav_.size()<<" x "<<phis_ldav_[0].size()<<endl;
+    cout<<"betas_ldav_ "<<betas_ldav_.size()<<" x "<<betas_ldav_[0].size()<<endl;
     
-    cout<<"alphas_ldav "<<alphas_ldav.size()<<endl;
+    cout<<"alphas_ldav_ "<<alphas_ldav_.size()<<endl;
     
-    cout<<"class_word_ldav "<<class_word_ldav.size()<<" x "<<class_word_ldav[0].size()<<endl;
-    cout<<"class_total_ldav "<<class_total_ldav.size()<<endl;
+    cout<<"class_word_ldav_ "<<class_word_ldav_.size()<<" x "<<class_word_ldav_[0].size()<<endl;
+    cout<<"class_total_ldav_ "<<class_total_ldav_.size()<<endl;
     
-    cout<<"gammas_ldav "<<gammas_ldav.size()<<" x "<<gammas_ldav[0].size()<<endl;
+    cout<<"gammas_ldav_ "<<gammas_ldav_.size()<<" x "<<gammas_ldav_[0].size()<<endl;
 
 }
 

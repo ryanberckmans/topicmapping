@@ -16,39 +16,14 @@ int main(int argc, char * argv[]) {
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
     
-    string corpus_file=P.string_ps.at("-f");
-    double p_value=P.double_ps.at("-p");
-    double min_filter=P.double_ps.at("-minf");
-    double max_filter=P.double_ps.at("-maxf");
-    int min_docs=P.int_ps.at("-t");
-    //int Nruns=P.int_ps.at("-r");
-    string partition_file=P.string_ps.at("-part");
-    
-    // checking parameters
-    max_filter=min(0.51, max_filter);
-    min_filter=max(0., min_filter);
-    if(p_value<=0) {
-        cerr<<"p-value cannot be smaller than 0: "<<p_value<<endl;
-        exit(-1);
-    }
-    if(min_filter>max_filter) {
-        cerr<<"ERROR: max_filter is smaller than min_filter"<<endl;
-        exit(-1);
-    }
-    
-    cout<<"*** corpus file: "<<corpus_file<<endl;
-    cout<<"*** p-value: "<<p_value<<endl;
-    cout<<"*** min filter: "<<min_filter<<endl;
-    cout<<"*** max filter: "<<max_filter<<endl;
-    cout<<"*** min docs per topic: "<<min_docs<<endl;
-    cout<<"*** convergence parameter: "<<P.double_ps.at("-conv")<<endl;
-    if(partition_file.size()>0)
-        cout<<"***  partition file: "<<partition_file<<endl;
-    
     // setting corpus from file
-    word_corpus C;
-	C.set_from_file(corpus_file);
-
+    word_corpus C(P.double_ps.at("-minf"),
+                  P.double_ps.at("-maxf"),  
+                  P.double_ps.at("-p"), 
+                  P.int_ps.at("-t"),  
+                  P.string_ps.at("-part"), 
+                  P.string_ps.at("-f") );
+    
 
     // doc_topic[doc] is p(t|doc)
     deque<mapid> doc_topic_best;
@@ -67,6 +42,7 @@ int main(int argc, char * argv[]) {
             topic_word_best, \
             doc_assignments, 0, P.double_ps.at("-conv"));
     
+    
     cout<<"Effective number topics: "<<eff_ntopics<<endl;
     
     
@@ -79,6 +55,8 @@ int main(int argc, char * argv[]) {
         C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
     */
+    
+    
     
     // optimizing LDA
     //C.lda_model(doc_topic_best, topic_word_best);

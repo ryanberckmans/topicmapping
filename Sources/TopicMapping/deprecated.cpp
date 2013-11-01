@@ -27,12 +27,12 @@ void set_corpuses_from_topics(deque<mapii> & doc_assignments, \
             // adding this doc to the corpus
             // it is the first time, we see this topic for this doc
             if(topic_newid.count(itm->second)==0) {
-                topic_newid[itm->second]=old_topic_corpus[itm->second].docs.size();
+                topic_newid[itm->second]=old_topic_corpus[itm->second].docs_.size();
                 doc doc_;
-                old_topic_corpus[itm->second].docs.push_back(doc_);
+                old_topic_corpus[itm->second].docs_.push_back(doc_);
             }
             
-            old_topic_corpus[itm->second].docs[topic_newid[itm->second]].wn_occurences.insert(make_pair(itm->first, oC.docs[i].wn_occurences[itm->first]));
+            old_topic_corpus[itm->second].docs_[topic_newid[itm->second]].wn_occurences_.insert(make_pair(itm->first, oC.docs_[i].wn_occurences_[itm->first]));
         }
         // storing the doc ids
         doc_topic_newid.push_back(topic_newid);
@@ -50,4 +50,12 @@ void set_corpuses_from_topics(deque<mapii> & doc_assignments, \
     
 }
 
+
+
+//P.set_int("-subt", 0., false, "[int]: minimum number of documents per subtopic. Default is 0, but 10 is recommended for big corpuses.");    
+//P.set_double("-conv", 1e-8, false, "[double]: if infomap relative gain is smaller than this, Infomap stops. Default: 1e-8.");
+//P.set_bool("-nos", false, false, ": no subtopics are provided.");
+//P.set_int("-subdocs", 10, false, "[int]: minimum size of each subtopic (#docs_). Default: 10.");
+//P.set_int("-subwords", 10, false, "[int]: minimum size of each subtopic (#words). Default: 10.");
+//P.set_bool("-fullout", false, false, ": writes thetas and betas file as well. Not recommended for big corpuses (lots of zeros)");
 
