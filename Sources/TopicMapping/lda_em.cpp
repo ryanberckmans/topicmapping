@@ -1,29 +1,32 @@
 
+
+
 double word_corpus::lda_inference(int doc_number) {
     
     
     //cout<<"alphas_ldav_:: "<<num_topics_ldav_<<endl;
     //prints(alphas_ldav_);
     
-    // assert here
-    int num_topics= betas_ldav_[0].size();    
-    //cout<<"num_topics:: "<<num_topics<<endl;
+    general_assert(betas_ldav_.size()>0, "empty betas");
+    assert_ints(num_topics_ldav_, betas_ldav_[0].size());
     
-    DD var_gamma;
-    var_gamma.assign(num_topics, 0.);
+    
+    DD & var_gamma = gammas_ldav_[doc_number];
+    //DD var_gamma;
+    //var_gamma.assign(num_topics_ldav_, 0.);
     // psi(var_gamma)
-    double digamma_gam[num_topics];
-    double oldphi[num_topics];
+    double digamma_gam[num_topics_ldav_];
+    double oldphi[num_topics_ldav_];
     
     
     // compute posterior dirichlet
-    for(int k=0; k<num_topics; k++) {
+    for(int k=0; k<num_topics_ldav_; k++) {
         // uniform
-        var_gamma[k]=(alphas_ldav_[k] + double(docs_[doc_number].num_words_)/num_topics);
+        var_gamma[k]=(alphas_ldav_[k] + double(docs_[doc_number].num_words_)/num_topics_ldav_);
         digamma_gam[k]=digamma(var_gamma[k]);
         // phi[word][topic]
         IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {            
-            phis_ldav_[itm->first][k] = 1.0/num_topics;
+            phis_ldav_[itm->first][k] = 1.0/num_topics_ldav_;
         }
     }
     
@@ -41,9 +44,9 @@ double word_corpus::lda_inference(int doc_number) {
             
             // all this refers to this particular word
             int n= itm->first;
-            double phisum;
+            double phisum=0.;
             
-            for (int k = 0; k < num_topics; k++) {
+            for (int k = 0; k < num_topics_ldav_; k++) {
                 
                 oldphi[k]=phis_ldav_[n][k];
                 phis_ldav_[n][k] = digamma_gam[k] + betas_ldav_[n][k];
@@ -53,13 +56,28 @@ double word_corpus::lda_inference(int doc_number) {
                     phisum = phis_ldav_[n][k]; // note, phi is in log space
             }
             
-            for (int k = 0; k < num_topics; k++) {
+            for (int k = 0; k < num_topics_ldav_; k++) {
                 
                 phis_ldav_[n][k] = exp(phis_ldav_[n][k] - phisum);
                 var_gamma[k] += itm->second*(phis_ldav_[n][k] - oldphi[k]);
                 digamma_gam[k] = digamma(var_gamma[k]);
-            }            
+            }
+            
         }
+        
+        // computing alternative var_gamma
+        DD var_gamma_new;
+        var_gamma_new.assign(num_topics_ldav_, 0.);
+        IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
+            RANGE_loop(kk, var_gamma_new) {
+                var_gamma_new[kk] += alphas_ldav_[kk] + itm->second*(phis_ldav_[itm->first][kk]);
+            }
+        }
+
+        
+        cout<<"diff:: "<<diff_norm_one(var_gamma, var_gamma_new)<<endl;
+
+        
         
         likelihood = compute_likelihood(doc_number, var_gamma);
         
@@ -78,16 +96,39 @@ double word_corpus::lda_inference(int doc_number) {
         */     
     }
     
+    
+    DD var_gamma_new;
+    var_gamma_new.assign(num_topics_ldav_, 0.);
+    IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
+        RANGE_loop(kk, var_gamma_new) {
+            var_gamma_new[kk] += alphas_ldav_[kk] + itm->second*(phis_ldav_[itm->first][kk]);
+        }
+    }
+
+    
+    cout<<"var_gamma"<<endl;
+    prints(var_gamma);
+    
+    cout<<"var_gamma_new"<<endl;
+    prints(var_gamma_new);
+    
+    cout<<"diff:: "<<diff_norm_one(var_gamma, var_gamma_new)<<endl;
+
+
+    
     // updates for M steps
-    gammas_ldav_.push_back(var_gamma);
+    //gammas_ldav_.push_back(var_gamma);
     
     // updating stats for betas_ldav_
-    IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) for (int k = 0; k < num_topics; k++) {
+    IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) for (int k = 0; k < num_topics_ldav_; k++) {
         class_word_ldav_[k][itm->first] += itm->second * phis_ldav_[itm->first][k];
         class_total_ldav_[k] += itm->second * phis_ldav_[itm->first][k];
     }
     
+    cout<<"alphas_ldav_"<<endl;
+    prints(alphas_ldav_);
     
+    exit(-1);
     return(likelihood);
 }
 
@@ -102,19 +143,16 @@ double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
     
     
     
-    //cout<<"var gamma"<<endl;
-    //prints(var_gamma);
     // assert number of topics is consistent (remove this later)
     assert_ints(var_gamma.size(), alphas_ldav_.size());
     assert_ints(var_gamma.size(), betas_ldav_[0].size());
     
-    int num_topics= betas_ldav_[0].size();
     
-    double dig[num_topics];
+    double dig[num_topics_ldav_];
     double var_gamma_sum=0.;
     double sum_l_gamma=0.;
     double sum_alphas=0.;
-    for (int k = 0; k < num_topics; k++) {
+    for (int k = 0; k < num_topics_ldav_; k++) {
         dig[k] = digamma(var_gamma[k]);
         var_gamma_sum += var_gamma[k];
         sum_l_gamma += lgamma(alphas_ldav_[k]);
@@ -123,8 +161,8 @@ double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
     double digsum = digamma(var_gamma_sum);
     
     /*
-     double likelihood = lgamma(alpha * num_topics) 
-     - num_topics * lgamma(alpha) 
+     double likelihood = lgamma(alpha * num_topics_ldav_) 
+     - num_topics_ldav_ * lgamma(alpha) 
      - lgamma(var_gamma_sum);
      */
     
@@ -133,7 +171,7 @@ double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
     - lgamma(var_gamma_sum);
     
     
-    for (int k = 0; k < num_topics; k++) {
+    for (int k = 0; k < num_topics_ldav_; k++) {
         likelihood +=
         (alphas_ldav_[k] - 1)*(dig[k] - digsum) 
         + lgamma(var_gamma[k])
@@ -169,7 +207,7 @@ double word_corpus::run_em() {
         
         // E steps
         set_class_words_to_zeros();
-        gammas_ldav_.clear();
+        //gammas_ldav_.clear();
         double likelihood_all=0.;
         RANGE_loop(doc_number, docs_) {
             if (doc_number%100==0)

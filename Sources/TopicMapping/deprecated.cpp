@@ -213,3 +213,44 @@ string word_corpus::get_topic_title(const mapid & topic_distr) {
 }
 
 
+
+
+double get_z_score(int N, double p, int real) {
+    
+    /* this is the z-score of a binomial distribution
+     we could actually compute the right cumularive.
+     but the approximation should hold pretty well */
+    
+    
+    double expected_usage =  p * N;
+    double std= sqrt(max(0., p * N * (1.-p) ));
+    double z_score=0;
+    if(std<1e-10) {
+        z_score= 1e300;
+    } else {
+        z_score = (double(real) - expected_usage)/std;
+    }
+    return z_score;
+    
+}
+
+
+void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & topic_old_docs) {
+    
+    topic_old_docs.clear();
+    RANGE_loop(i, doc_topic_newid) {
+        IT_loop(mapii, itm, doc_topic_newid[i]) {
+            
+            int topic=itm->first;
+            int new_id=itm->second;
+            
+            if(topic_old_docs.count(topic)==0) {
+                mapii mapii_;
+                topic_old_docs[topic]=mapii_;
+            }
+            // in this topic, here is how the new id maps to the original doc
+            topic_old_docs[topic][new_id]=i;
+        }
+    }
+}
+

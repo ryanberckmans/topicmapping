@@ -8,10 +8,9 @@ typedef map<int, mapid> mapimapid;
 #include "utilities.h"
 #include "log_table.h"
 
+
 // TODO
 // in class doc, wn_occurences_ is not efficient
-
-
 
 
 class doc {
@@ -169,10 +168,9 @@ word_corpus::word_corpus(double min_filter_p, double max_filter_p,
 }
 
 
-
-
 #include "doc.cpp"
 #include "word_corpus.cpp"
 #include "sig_topics.cpp"
 #include "filter_topics.cpp"
 #include "lda_model.h"
+

@@ -143,3 +143,10 @@ void print_theta(mapid & theta_doc, mapii & new_names_for_topics, ostream & pout
     prints(thetas, pout);
 }
 
+
+double compute_eff_num_topics(const mapid & pt) {
+    double h=0.;
+    IT_const_loop(mapid, itm, pt) h+=itm->second*log2(itm->second);
+    return pow(2,-1*h);
+}
+
