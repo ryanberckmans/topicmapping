@@ -30,19 +30,18 @@ double word_corpus::lda_inference(int doc_number) {
     double likelihood_old=0;
     int var_iter=0;
     
-    while(converged>1e-5 and var_iter<1000) {
+    
+    
+    while(converged>1e-5 and var_iter<1000) {        
         
         var_iter++;
-        
         // looping over words in doc
+        // updating phis_ldav_        
         IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
-            
             // all this refers to this particular word
             int n= itm->first;
-            double phisum=0.;
-            
+            double phisum=0.;            
             for (int k = 0; k < num_topics_ldav_; k++) {
-                
                 oldphi[k]=phis_ldav_[n][k];
                 phis_ldav_[n][k] = digamma_gam[k] + betas_ldav_[n][k];
                 if (k > 0)
@@ -50,26 +49,25 @@ double word_corpus::lda_inference(int doc_number) {
                 else
                     phisum = phis_ldav_[n][k]; // note, phi is in log space
             }
-            
             for (int k = 0; k < num_topics_ldav_; k++) {
-                
                 phis_ldav_[n][k] = exp(phis_ldav_[n][k] - phisum);
                 var_gamma[k] += itm->second*(phis_ldav_[n][k] - oldphi[k]);
                 digamma_gam[k] = digamma(var_gamma[k]);
             }
-            
         }
         
-        // computing alternative var_gamma
-        DD var_gamma_new;
-        var_gamma_new=alphas_ldav_;
+        /*
+        // updating var_gamma
+        var_gamma=alphas_ldav_;
         IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
-            RANGE_loop(kk, var_gamma_new) {
-                var_gamma_new[kk] += itm->second*(phis_ldav_[itm->first][kk]);
+            RANGE_loop(kk, var_gamma) {
+                var_gamma[kk] += itm->second*(phis_ldav_[itm->first][kk]);
             }
         }
+        // updating digamma_gam
+        RANGE_loop(kk, var_gamma) digamma_gam[kk] = digamma(var_gamma[kk]);
+        */
 
-        cout<<"diff:: "<<diff_norm_one(var_gamma, var_gamma_new)<<endl;        
         likelihood = compute_likelihood(doc_number, var_gamma);
         
         if(likelihood!=likelihood) {
