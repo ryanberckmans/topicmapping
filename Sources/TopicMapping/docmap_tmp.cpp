@@ -34,7 +34,7 @@ int main(int argc, char * argv[]) {
     // pt[topic] is p(t)
     mapid pt;
     
-    
+    /*
     double eff_ntopics=C.dimap(P.int_ps.at("-r"), \
                                pt,doc_topic_best, \
                                topic_word_best,
@@ -47,7 +47,7 @@ int main(int argc, char * argv[]) {
                                        "doc_topics.txt", "topic_words.txt", "topic_summary.txt", pt);
     C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
-    
+    */
     
     
     

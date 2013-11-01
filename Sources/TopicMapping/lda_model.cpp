@@ -34,7 +34,8 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     // ---------- TEMPORARY ----------
     topic_word.clear();
-    ifstream gin("betas.txt");
+    //ifstream gin("betas.txt");
+    ifstream gin("run_exp/final.beta");
     string gins;
     int count_line=0;
     while(getline(gin, gins)) {
@@ -95,7 +96,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // the initialization of alphas_ldav_ is quite arbitrary 
     // and should be done
     // using doc_topic
-    alphas_ldav_.assign(num_topics_ldav_, 0.01);
+    alphas_ldav_.assign(num_topics_ldav_, 0.1336611513);
     
     // copying topic_word in betas_ldav_
     // this should be avoided and pass betas_ldav_ directly
