@@ -1,6 +1,11 @@
 
 double word_corpus::lda_inference_sparse(int doc_number) {
     
+    
+    // phis_ldav_map_wn
+    // should probably be a deque<pair<int, double> >
+    // should be faster
+    
     /*
         this function is the equivalent of lda_inference
         but here we only update var_gamma for topic 
@@ -145,10 +150,11 @@ double word_corpus::lda_inference_sparse(int doc_number) {
     IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {
     
         mapid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
-        const int & wn = wn_occ->first;
+        mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn_occ->first);
+        
         IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
             const int & k = topic_pr->first;
-            int_histogram(wn, class_word_ldav_map_[k],  wn_occ->second * topic_pr->second );
+            int_histogram(k, class_word_ldav_map_wn,  wn_occ->second * topic_pr->second );
             int_histogram(k, class_total_ldav_map_, wn_occ->second * topic_pr->second);
         }
     }
@@ -266,26 +272,38 @@ double word_corpus::run_em_sparse() {
         
         // M step
         // optimizing betas
+        
+        
         RANGE_loop(wn, word_occurrences_) {
         
-            mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn_occ->first);
-            mapid & betas_ldav_wn = betas_ldav_map_.at(wn_occ->first);
+            mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn);
+            mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
             
             IT_loop(mapid, topic_pr, class_word_ldav_map_wn) {
-                if(topic_pr->second > 0)
-                    betas_ldav_wn[topic_pr->first] = log(topic_pr->second) - log(class_total_ldav_[topic_pr->first]);
-                else {
+                if(topic_pr->second > 0) {
+                    //cout<<"topic "<<topic_pr->first<<" "<<topic_pr->second<<endl;
+                    betas_ldav_wn[topic_pr->first] = log(topic_pr->second) - log(class_total_ldav_map_.at(topic_pr->first));
+                } else {
                     // this should never happen
                     betas_ldav_wn[topic_pr->first] = -100;
                 }
             }
-        }    
-        optimize_alpha();
+        }
+        
+        // check betas is  normalized!!!!!!!!!!
+        // remove thissssssssssssss
+        mapid topic_norm;
+        RANGE_loop(wn, word_occurrences_) {
+            mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
+            IT_loop(mapid, topic_pr, betas_ldav_wn) {
+                int_histogram(topic_pr->first, topic_norm, exp(topic_pr->second));
+            }        
+        }
+        cout<<"________________"<<endl;
+        prints(topic_norm);
+        optimize_alpha_sparse();
         
         cout<<"log likelihood "<<likelihood_all<<endl;
-        // this is for debugging!!!!!!!
-        ofstream pout_final("lda_gammas.txt");
-        exit(-1);
         // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < 1e-4 )
             break;

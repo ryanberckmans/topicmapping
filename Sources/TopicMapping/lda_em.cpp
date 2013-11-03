@@ -208,7 +208,6 @@ double word_corpus::run_em() {
             //exit(-1);
         }
         infout.close();
-        exit(-1);
         
         
         // M step
@@ -224,9 +223,7 @@ double word_corpus::run_em() {
         optimize_alpha();
         
         cout<<"log likelihood "<<likelihood_all<<endl;
-        // this is for debugging!!!!!!!
-        ofstream pout_final("lda_gammas.txt");
-        exit(-1);
+
         // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < 1e-4 )
             break;

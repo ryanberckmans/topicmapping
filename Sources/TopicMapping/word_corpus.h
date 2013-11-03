@@ -116,6 +116,7 @@ private:
     void set_class_words_to_zeros();
     void initialize_lda_data(deque<mapid> & doc_topic, map<int, mapid> & topic_word);
     void optimize_alpha();
+    void optimize_alpha_sparse();
     
     double compute_likelihood_sparse(int doc_number);
     double lda_inference_sparse(int doc_number);
