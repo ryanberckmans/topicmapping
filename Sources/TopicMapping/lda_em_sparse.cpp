@@ -1,6 +1,41 @@
 
-double word_corpus::lda_inference_sparse(int doc_number) {
+# define LIK_precision 1e-4
+// exp(-14) ~ 1e-6
+# define DIGAMMA_precision -14.
+# define VARGAMMA_precision 1e-6
+
+
+
+double word_corpus::compute_likelihood_sparse_constants(int doc_number, \
+                                                        mapid & var_gamma, \
+                                                        double & digsum, \
+                                                        const double & sum_alphas) {
+
+    // =========== likelihood terms which are independent of var_gamma values
+    double var_gamma_sum= sum_alphas + docs_[doc_number].num_words_;
+    digsum = digamma(var_gamma_sum);
+    double likelihood= -lgamma(var_gamma_sum);
     
+    // this sum if over values which are not found in var_gamma
+    // var_gamma[k]= alphas_ldav_[k]
+    // It's probably good to store digamma(alphas_ldav_[k]) !!!!!!!!!!!!!!
+    // digamma_gam[k] = digamma(alphas_ldav_[k])
+    
+    for (int k = 0; k < num_topics_ldav_; k++) if(var_gamma.count(k)==0) {
+        
+        likelihood +=   \
+                        (alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum)  \
+                        + lgamma(alphas_ldav_[k]) \
+                        - (alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum);
+        
+    }
+    
+    return likelihood;
+    
+    
+}
+
+double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alphas) {
     
     // phis_ldav_map_wn
     // should probably be a deque<pair<int, double> >
@@ -33,6 +68,8 @@ double word_corpus::lda_inference_sparse(int doc_number) {
     mapid & var_gamma = gammas_ldav_map_[doc_number];
     mapid digamma_gam;
     
+    if(verbose) cout<<"doc topic space: "<<var_gamma.size()<<endl;
+    
     // compute posterior dirichlet
     IT_loop(mapid, topic_pr, var_gamma) {
         // uniform
@@ -63,6 +100,11 @@ double word_corpus::lda_inference_sparse(int doc_number) {
         //    phis_ldav_map_wn[topic_pr->first] = 1.0/num_topics_ldav_;
         //}
     }
+    
+    
+    double digsum=0.;
+    double likelihood_const= compute_likelihood_sparse_constants(doc_number, var_gamma, digsum, sum_alphas);
+
     
     double converged=1;
     double likelihood=0;
@@ -104,7 +146,7 @@ double word_corpus::lda_inference_sparse(int doc_number) {
             if(var_iter==1) {
                 IT_loop(mapid, topic_pr, var_gamma) {
                     topic_pr->second -= double(wn_occ->second) /num_topics_ldav_;
-                    digamma_gam[topic_pr->first]=digamma(var_gamma[topic_pr->first]);
+                    digamma_gam[topic_pr->first]=digamma(topic_pr->second);
                 }
                 IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
                     topic_pr->second = exp(topic_pr->second - phisum);
@@ -129,7 +171,7 @@ double word_corpus::lda_inference_sparse(int doc_number) {
             //======================================================
         }
         
-        likelihood = compute_likelihood_sparse(doc_number);
+        likelihood = compute_likelihood_sparse(doc_number, var_gamma, digamma_gam, digsum);
         
         if(likelihood!=likelihood) {
             cerr<<"error in likelihood:: "<<likelihood<<endl;
@@ -164,12 +206,43 @@ double word_corpus::lda_inference_sparse(int doc_number) {
         prints(alphas_ldav_);
     }
     
-    return(likelihood);
+    // if exp(digamma_gam[topic_num])< 1e-12 and var_gamma is very close to the prior
+    // it means this doc is not using that topic whatsoever
+    // (no words have been assigned to that topic at all)
+    // therefore, you can remove it from var_gammas 
+    
+    if(verbose)
+        cout<<"======== erasing stuff ============="<<endl;
+    
+    IT_loop(mapid, itm, digamma_gam) {
+        if  (\
+             (itm->second < DIGAMMA_precision) \
+             and \
+             (var_gamma.at(itm->first) - alphas_ldav_[itm->first] < VARGAMMA_precision ) \
+             ) {
+            // erasing this topic from the possible ones for this doc
+            if(verbose) cout<<"erasing this::: "<<exp(itm->second) <<var_gamma.at(itm->first) - alphas_ldav_[itm->first]<<endl;
+            var_gamma.erase(itm->first);
+        }
+        else {
+            if(verbose)  cout<<"not erasing this::: "<<exp(itm->second) <<" "<<var_gamma.at(itm->first) - alphas_ldav_[itm->first]<<endl;
+        }
+    }
+    
+    
+    if(verbose) cout<<"=========doc topic space: "<<var_gamma.size()<<endl;
+    
+    
+    return likelihood+likelihood_const;
 }
 
 
 
-double word_corpus::compute_likelihood_sparse(int doc_number) {
+double word_corpus::compute_likelihood_sparse(int doc_number, \
+                                              mapid & var_gamma, mapid & digamma_gam, 
+                                              const double & digsum) {
+    
+    
     
     
     // it would be better to pass this ====================================================
@@ -177,12 +250,12 @@ double word_corpus::compute_likelihood_sparse(int doc_number) {
     mapid & var_gamma = gammas_ldav_map_[doc_number];
     mapid digamma_gam;
     IT_loop(mapid, topic_pr, var_gamma) digamma_gam[topic_pr->first]=digamma(topic_pr->second);
-
-
+    
+    
     // =========== independent =================== of var_gamma values
     double sum_alphas=0.;
     double sum_lg_alphas=0.;
-
+    
     for (int k = 0; k < num_topics_ldav_; k++) {
         sum_alphas += alphas_ldav_[k];
         sum_lg_alphas += lgamma(alphas_ldav_[k]);
@@ -190,11 +263,11 @@ double word_corpus::compute_likelihood_sparse(int doc_number) {
     
     double var_gamma_sum=sum_alphas + docs_[doc_number].num_words_;
     double digsum = digamma(var_gamma_sum);
-        
+    
     double likelihood = lgamma(sum_alphas) 
-                        - sum_lg_alphas 
-                        - lgamma(var_gamma_sum);
-        
+    - sum_lg_alphas 
+    - lgamma(var_gamma_sum);
+    
     // this sum if over values which are not found in var_gamma
     // var_gamma[k]= alphas_ldav_[k]
     
@@ -212,17 +285,18 @@ double word_corpus::compute_likelihood_sparse(int doc_number) {
     // =========== independent =================== of var_gamma values
     
     
+
+    
+    
+    double likelihood=0.;
     IT_loop(mapid, topic_pr, var_gamma) {
         
         int k = topic_pr->first;
-        // the part with the digsum should be removed from here...
-        // you should alsp use topic_pr->...
-        
-        likelihood +=
-        (alphas_ldav_[k] - 1)*(digamma_gam[k] - digsum) 
-        + lgamma(var_gamma[k])
-        - (var_gamma[k] - 1)*(digamma_gam[k] - digsum);
-        
+        // the part with the digsum could be removed from here
+        // you should also use topic_pr->!!!!!!!!!!!!!!!
+        likelihood += (alphas_ldav_[k] - 1) * (digamma_gam[k] - digsum) \
+                        + lgamma(var_gamma[k]) \
+                        - (var_gamma[k] - 1) * (digamma_gam[k] - digsum);
     }    
     
     
@@ -238,10 +312,25 @@ double word_corpus::compute_likelihood_sparse(int doc_number) {
         }
     }
 
-    return(likelihood);
+    return likelihood;
 
 }
 
+
+double word_corpus::compute_likelihood_alpha_terms(double & sum_alphas) {
+    
+    // part of likelihood bound which does not depend on doc
+    sum_alphas=0.;
+    double sum_lg_alphas=0.;
+    
+    for (int k = 0; k < num_topics_ldav_; k++) {
+        sum_alphas += alphas_ldav_[k];
+        sum_lg_alphas += lgamma(alphas_ldav_[k]);
+    }
+        
+    return (lgamma(sum_alphas) - sum_lg_alphas);
+    
+}
 
 
 double word_corpus::run_em_sparse() {
@@ -249,25 +338,26 @@ double word_corpus::run_em_sparse() {
     cout<<"running EM"<<endl;    
     
     // tmp    
-    ofstream infout("inf.txt");
     double likelihood_old=-1e300;
     
     while(true) {
         
         // E steps
+        double sum_alphas=0.;
+        double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
         set_class_words_to_zeros_map();
         //gammas_ldav_.clear();
         double likelihood_all=0.;
+        //ofstream infout("inf.txt");
         RANGE_loop(doc_number, docs_) {
             if (doc_number%100==0)
                 cout<<"running lda-inference for doc "<<doc_number<<endl;
-            double likelihood_doc = lda_inference_sparse(doc_number);
+            double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas) + likelihood_alpha;
             likelihood_all+=likelihood_doc;
             //infout<<likelihood_doc<<endl;
-            infout<<likelihood_doc<<endl;
             //exit(-1);
         }
-        infout.close();
+        //infout.close();
         
         
         // M step
@@ -305,12 +395,13 @@ double word_corpus::run_em_sparse() {
         
         cout<<"log likelihood "<<likelihood_all<<endl;
         // this is arbitrary
-        if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < 1e-4 )
+        if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
             break;
         likelihood_old=likelihood_all;
     }
     
-    
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // this was set from optimize_alpha_sparse
     ofstream pout_final("lda_gammas.txt");
     printm(gammas_ldav_, pout_final);
     

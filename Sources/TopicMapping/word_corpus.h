@@ -118,8 +118,16 @@ private:
     void optimize_alpha();
     void optimize_alpha_sparse();
     
-    double compute_likelihood_sparse(int doc_number);
-    double lda_inference_sparse(int doc_number);
+    double compute_likelihood_sparse(int doc_number, \
+                                     mapid & var_gamma, mapid & digamma_gam, 
+                                     const double & digsum);
+                                     
+    double compute_likelihood_sparse_constants(int doc_number, \
+                                               mapid & var_gamma, \
+                                               double & digsum, \
+                                               const double & sum_alphas);
+    double compute_likelihood_alpha_terms(double & sum_alphas);
+    double lda_inference_sparse(int doc_number, const double & sum_alphas);
 
     
     // lda data structures
@@ -140,10 +148,6 @@ private:
     deque<mapid> class_word_ldav_map_;
     mapid class_total_ldav_map_;
     deque<mapid> gammas_ldav_map_;
-
-
-
-    
     
 };
 

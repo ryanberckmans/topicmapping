@@ -52,9 +52,10 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // some asserts are also done and should be removed later
     
     // ---------- TEMPORARY ----------
+    /*
     topic_word.clear();
-    //ifstream gin("betas.txt");
-    ifstream gin("run_exp/final.beta");
+    ifstream gin("betas.txt");
+    //ifstream gin("run_exp/final.beta");
     string gins;
     int count_line=0;
     while(getline(gin, gins)) {
@@ -73,7 +74,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         count_line+=1;
     }
     // TEMPORARY ---------------------
-    
+    //*/
     
     // asserting everything is starting from zero and being consecutive
     DI all_topics;
@@ -111,9 +112,12 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     DD void_dd_numtops;
     void_dd_numtops.assign(num_topics_ldav_, 0.);
+    DD void_dd_numtops_minus100;
+    void_dd_numtops_minus100.assign(num_topics_ldav_, -100.);
+
     
     RANGE_loop(wn, word_occurrences_) {
-        betas_ldav_.push_back(void_dd_numtops);
+        betas_ldav_.push_back(void_dd_numtops_minus100);
         // this could be made more efficient (making it depend on single documents)
         phis_ldav_.push_back(void_dd_numtops);
     }
@@ -124,14 +128,14 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
         
-        int word_wn=0;
+        //int word_wn=0;
         IT_loop(mapid, itm2, topic_itm->second) { 
-            assert_ints(itm2->first, word_wn);
+            //assert_ints(itm2->first, word_wn);
+            int word_wn=itm2->first;
             if(itm2->second>0)
                 betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
             else
                 betas_ldav_[word_wn][topic_itm->first]=-100;
-            ++word_wn;
         }
     }
     
@@ -188,18 +192,27 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
-        int word_wn=0;
         IT_loop(mapid, itm2, topic_itm->second) { 
+            int word_wn=itm2->first;
             assert_ints(itm2->first, word_wn);
             // words which are below this threshold should never 
             // be relevant in this topic
             if(itm2->second>SPARSE_limit)
                 betas_ldav_map_[word_wn][topic_itm->first] = log(itm2->second);
-            ++word_wn;
         }
     }
-    
 
+
+    cout<<"check normalization"<<endl;
+    mapid topic_norm;
+    RANGE_loop(wn, word_occurrences_) {
+        mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
+        IT_loop(mapid, topic_pr, betas_ldav_wn) {
+            int_histogram(topic_pr->first, topic_norm, exp(topic_pr->second));
+        }        
+    }
+    cout<<"________________"<<endl;
+    prints(topic_norm);
     
     set_class_words_to_zeros_map();
     
@@ -218,6 +231,9 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         }
     }
     
+    
+    
+
     
     
     

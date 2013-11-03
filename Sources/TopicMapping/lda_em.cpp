@@ -8,7 +8,7 @@ double word_corpus::lda_inference(int doc_number) {
     bool verbose=false;
     
     general_assert(betas_ldav_.size()>0, "empty betas");
-    assert_ints(num_topics_ldav_, betas_ldav_[0].size());
+    assert_ints(num_topics_ldav_, betas_ldav_[0].size(), "beta is sparse");
     
     DD & var_gamma = gammas_ldav_[doc_number];
     //DD var_gamma;
@@ -95,10 +95,6 @@ double word_corpus::lda_inference(int doc_number) {
         */
     }
     
-    
-    
-
-
     
     // updates for M steps
     //gammas_ldav_.push_back(var_gamma);
@@ -189,7 +185,7 @@ double word_corpus::run_em() {
     cout<<"running EM"<<endl;    
     
     // tmp    
-    ofstream infout("inf.txt");
+    //ofstream infout("inf.txt");
     double likelihood_old=-1e300;
     
     while(true) {
@@ -204,10 +200,10 @@ double word_corpus::run_em() {
             double likelihood_doc = lda_inference(doc_number);
             likelihood_all+=likelihood_doc;
             //infout<<likelihood_doc<<endl;
-            infout<<likelihood_doc<<" "<<lda_inference_sparse(doc_number)<<endl;
+            //infout<<likelihood_doc<<" "<<lda_inference_sparse(doc_number)<<endl;
             //exit(-1);
         }
-        infout.close();
+        //infout.close();
         
         
         // M step

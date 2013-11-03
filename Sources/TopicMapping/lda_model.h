@@ -18,8 +18,8 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
     initialize_lda_data(doc_topic, topic_word);
     
     // loop until convergence
-    run_em();
-    //run_em_sparse();
+    //run_em();
+    run_em_sparse();
     
     return 0.;
 
