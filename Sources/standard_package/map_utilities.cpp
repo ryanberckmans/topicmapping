@@ -56,14 +56,14 @@ inline void update_mapid(mapid & m, const int & key, double value) {
 
 
 
-inline double get_from_mapid(const mapid & m, int key) {
+inline double get_from_mapid(const mapid & m, int key, double default_ret=0.) {
     
     /* this function returns m.at(key) if it exists
      and 0 if it does not */
      
     mapid::const_iterator pos = m.find(key);
     if (pos == m.end()) {
-        return 0.;
+        return default_ret;
     } else {
         return pos->second;
     }

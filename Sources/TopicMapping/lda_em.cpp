@@ -1,8 +1,11 @@
 
+
 double word_corpus::lda_inference(int doc_number) {
     
     //cout<<"alphas_ldav_:: "<<num_topics_ldav_<<endl;
     //prints(alphas_ldav_);
+    
+    bool verbose=false;
     
     general_assert(betas_ldav_.size()>0, "empty betas");
     assert_ints(num_topics_ldav_, betas_ldav_[0].size());
@@ -25,13 +28,15 @@ double word_corpus::lda_inference(int doc_number) {
         }
     }
     
+    //cout<<"var_gamma::"<<endl;
+    //prints(var_gamma);
+
+    
     double converged=1;
     double likelihood=0;
     double likelihood_old=0;
     int var_iter=0;
-    
-    
-    
+        
     while(converged>1e-5 and var_iter<1000) {        
         
         var_iter++;
@@ -54,6 +59,13 @@ double word_corpus::lda_inference(int doc_number) {
                 var_gamma[k] += itm->second*(phis_ldav_[n][k] - oldphi[k]);
                 digamma_gam[k] = digamma(var_gamma[k]);
             }
+            
+            if(verbose) {
+                cout<<"============= wn:: "<<n<<endl;
+                prints(phis_ldav_[n]);
+            }
+            
+            
         }
         
         /*
@@ -97,11 +109,17 @@ double word_corpus::lda_inference(int doc_number) {
         class_total_ldav_[k] += itm->second * phis_ldav_[itm->first][k];
     }
     
-    cout<<"alphas_ldav_"<<endl;
-    prints(alphas_ldav_);
-    
+    if(verbose) {
+        cout<<"alphas_ldav_"<<endl;
+        prints(alphas_ldav_);
+    }
     return(likelihood);
 }
+
+
+
+
+
 
 
 /*
@@ -185,9 +203,13 @@ double word_corpus::run_em() {
                 cout<<"running lda-inference for doc "<<doc_number<<endl;
             double likelihood_doc = lda_inference(doc_number);
             likelihood_all+=likelihood_doc;
-            infout<<likelihood_doc<<endl;
+            //infout<<likelihood_doc<<endl;
+            infout<<likelihood_doc<<" "<<lda_inference_sparse(doc_number)<<endl;
+            //exit(-1);
         }
         infout.close();
+        exit(-1);
+        
         
         // M step
         // optimizing betas
@@ -202,6 +224,8 @@ double word_corpus::run_em() {
         optimize_alpha();
         
         cout<<"log likelihood "<<likelihood_all<<endl;
+        // this is for debugging!!!!!!!
+        ofstream pout_final("lda_gammas.txt");
         exit(-1);
         // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < 1e-4 )

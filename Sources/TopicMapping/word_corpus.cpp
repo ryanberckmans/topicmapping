@@ -141,7 +141,9 @@ void word_corpus::write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, 
         pout1<<endl;
     }
     
-    double smoothing_par=1e-4;
+    // TODO
+    // fix this
+    double smoothing_par=1e-15;
     
     deque<DD> betas;
     set_matrix_to_zero(topic_names.size(), word_occurrences_.size(), betas);

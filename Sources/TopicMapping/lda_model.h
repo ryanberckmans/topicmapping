@@ -5,6 +5,7 @@
 #include "lda_model.cpp"
 #include "alpha_optimization.cpp"
 #include "lda_em.cpp"
+#include "lda_em_sparse.cpp"
 
 
 
@@ -17,7 +18,8 @@ double word_corpus::lda_model(deque<mapid> & doc_topic,
     initialize_lda_data(doc_topic, topic_word);
     
     // loop until convergence
-    run_em();
+    //run_em();
+    run_em_sparse();
     
     return 0.;
 
