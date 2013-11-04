@@ -1,5 +1,5 @@
 
-# define LIK_precision 1e-4
+# define LIK_precision 1e-5
 // exp(-14) ~ 1e-6
 # define DIGAMMA_precision -14.
 # define VARGAMMA_precision 1e-6

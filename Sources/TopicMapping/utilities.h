@@ -4,7 +4,12 @@ void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<in
 	
     cooc.clear();
 	RANGE_loop(i, corpus_matrix) {
-    
+        
+        
+        if(i%1000==0){
+            cout<<"computing connected words:: "<<i<<endl;
+        }
+        
         mapii hist;
         DI ws;
         RANGE_loop(j, corpus_matrix[i]) int_histogram(corpus_matrix[i][j], hist);        

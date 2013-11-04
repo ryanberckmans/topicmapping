@@ -45,7 +45,7 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
                 
         // significant links
         if(it->second- qfive>0) {
-        
+            
             links1.push_back(it->first.first);
             links2.push_back(it->first.second);
             weights.push_back(double(it->second- qfive));
