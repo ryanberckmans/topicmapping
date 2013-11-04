@@ -350,7 +350,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
     double optimal_par=0.;
     
     double eff_ntopics=0.;
-    
+    // step should be a parameter
     for(double filtering_par=min_filter_; filtering_par<max_filter_+0.01; filtering_par+=0.01) {
         
         map<int, mapii> word_topic; // for each word, {topic:usage}

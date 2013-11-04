@@ -51,7 +51,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // using doc_topic
     alphas_ldav_.clear();
     // this should be a parameter !!!!!!!!!!!!!!!!!
-    alphas_ldav_.assign(num_topics_ldav_, 0.1);
+    alphas_ldav_.assign(num_topics_ldav_, 1.);
     
     
     cout<<"============== DIMENSIONS =============="<<endl;
