@@ -14,7 +14,7 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
     int_matrix original_corpus;
 	RANGE_loop(i, docs_) {
 		DI new_word_list;
-		IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+		IT_loop(deqii, itm, docs_[i].wn_occs_) {
 			for(int occ=0; occ<itm->second; occ++) {
 				new_word_list.push_back(itm->first);
             }

@@ -15,9 +15,7 @@ void word_corpus::set_from_file(string filename) {
         
 		doc newdoc;
 		newdoc.set_from_string(buffer, word_number_all, number_word_all);
-		IT_loop(mapii, itm, newdoc.wn_occurences_) {
-            // storing data in deqii
-            newdoc.wn_occs_.push_back(*itm);
+		IT_loop(deqii, itm, newdoc.wn_occs_) {
 			int_histogram(itm->first, wn_occurences__all, itm->second);
 		}
 		if(newdoc.num_words_>0)
@@ -70,8 +68,8 @@ void word_corpus::write_corpus_file() {
 	
 	RANGE_loop(i, docs_) {
 		
-		pout<<docs_[i].wn_occurences_.size()<<" ";
-		IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+		pout<<docs_[i].wn_occs_.size()<<" ";
+		IT_loop(deqii, itm, docs_[i].wn_occs_) {
 			pout<<itm->first<<":"<<itm->second<<" ";
 		}
 		pout<<endl;

@@ -17,6 +17,7 @@ void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<in
         
         RANGE_loop(j, ws) for(UI k=0; k<j; k++) {
             
+            // I think this could be avoided
             int w1=min(ws[j], ws[k]);
             int w2=max(ws[j], ws[k]);
             

@@ -5,26 +5,6 @@
 # define SPARSE_limit 1e-12
 
 
-void word_corpus::set_class_words_to_zeros() {
-    
-    // initializing class_word_ldav_ and class_total_ldav_
-    // class_word_ldav_[topic][wn] 
-    // class_total_ldav_[topic]
-    
-
-    // ============ this should be made more efficient =======
-    class_word_ldav_.clear();
-    class_total_ldav_.clear();
-
-    
-    DD void_dd_class;
-    void_dd_class.assign(word_occurrences_.size(), 0.);
-    for(int k=0; k<num_topics_ldav_; k++) {
-        class_word_ldav_.push_back(void_dd_class);
-    }
-    class_total_ldav_.assign(num_topics_ldav_, 0.);
-    
-}
 
 void word_corpus::set_class_words_to_zeros_map() {
     
@@ -89,59 +69,19 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     num_topics_ldav_=all_topics.size();
     cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
-    
-    phis_ldav_.clear();
-    betas_ldav_.clear();
-    alphas_ldav_.clear();
-    class_word_ldav_.clear();
-    class_total_ldav_.clear();
-    gammas_ldav_.clear();
-    
-    // betas_ldav_ is inverted respect with the original code
-    // I think it's better this way (one long vector of short vectors rather 
-    // than few long vectors)
-    // should I do the same thing on class_word_ldav_?
-    
-    
     // TODO 
     // the initialization of alphas_ldav_ is quite arbitrary 
     // and should be done
     // using doc_topic
+    alphas_ldav_.clear();
     alphas_ldav_.assign(num_topics_ldav_, 0.1336611513);
+    
     
     
     DD void_dd_numtops;
     void_dd_numtops.assign(num_topics_ldav_, 0.);
-    DD void_dd_numtops_minus100;
-    void_dd_numtops_minus100.assign(num_topics_ldav_, -100.);
 
-    
-    RANGE_loop(wn, word_occurrences_) {
-        betas_ldav_.push_back(void_dd_numtops_minus100);
-        // this could be made more efficient (making it depend on single documents)
-        phis_ldav_.push_back(void_dd_numtops);
-    }
-    
-    // copying topic_word in betas_ldav_
-    // this should be avoided and pass betas_ldav_ directly
-    // to the lda model
-    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
-         topic_itm!=topic_word.end(); topic_itm++) {
-        
-        //int word_wn=0;
-        IT_loop(mapid, itm2, topic_itm->second) { 
-            //assert_ints(itm2->first, word_wn);
-            int word_wn=itm2->first;
-            if(itm2->second>0)
-                betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
-            else
-                betas_ldav_[word_wn][topic_itm->first]=-100;
-        }
-    }
-    
-    
-    set_class_words_to_zeros();
-    
+    gammas_ldav_.clear();
     // initializing gammas
     RANGE_loop(doc_number, docs_) {
         gammas_ldav_.push_back(void_dd_numtops);
@@ -151,13 +91,13 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     cout<<"============== DIMENSIONS =============="<<endl;
     cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
     
-    cout<<"phis_ldav_ "<<phis_ldav_.size()<<" x "<<phis_ldav_[0].size()<<endl;
-    cout<<"betas_ldav_ "<<betas_ldav_.size()<<" x "<<betas_ldav_[0].size()<<endl;
+    //cout<<"phis_ldav_ "<<phis_ldav_.size()<<" x "<<phis_ldav_[0].size()<<endl;
+    //cout<<"betas_ldav_ "<<betas_ldav_.size()<<" x "<<betas_ldav_[0].size()<<endl;
     
     cout<<"alphas_ldav_ "<<alphas_ldav_.size()<<endl;
     
-    cout<<"class_word_ldav_ "<<class_word_ldav_.size()<<" x "<<class_word_ldav_[0].size()<<endl;
-    cout<<"class_total_ldav_ "<<class_total_ldav_.size()<<endl;
+    //cout<<"class_word_ldav_ "<<class_word_ldav_.size()<<" x "<<class_word_ldav_[0].size()<<endl;
+    //cout<<"class_total_ldav_ "<<class_total_ldav_.size()<<endl;
     
     cout<<"gammas_ldav_ "<<gammas_ldav_.size()<<" x "<<gammas_ldav_[0].size()<<endl;
     
@@ -224,9 +164,9 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         // gammas_ldav_map_[missing_topic]=alphas_ldav_[missing_topic]
         // but this is not recorded
         gammas_ldav_map_.push_back(void_mapid);
-        IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {
+        IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
             IT_loop(mapid, topic_prob, betas_ldav_map_[wn_occ->first]) {
-                // different normalization could be possible here
+                // different normalizations could be possible here
                 int_histogram(topic_prob->first, gammas_ldav_map_[doc_number], 0.);
             }
         }

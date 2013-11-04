@@ -322,3 +322,111 @@ void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & to
 
 // =========== independent =================== of var_gamma values
 
+
+/*
+ void word_corpus::update_doc_num_thetas(DI & doc_numbers,
+ bool just_one_noise_topic, 
+ map<int, mapid> & doc_number_thetas, 
+ int_matrix & word_partition, 
+ int & doc_number_multipart) {
+ if(word_partition.size()>0) {
+ 
+ // getting original label
+ int doc_number_original=doc_numbers[doc_number_multipart];
+ mapid theta_doc;
+ // getting theta
+ int missing_topic=-doc_number_original-1;
+ if(just_one_noise_topic)
+ missing_topic=-1;
+ docs_[doc_number_original].compute_thetas(word_partition, theta_doc, missing_topic);
+ doc_number_thetas[doc_number_original]=theta_doc;
+ word_partition.clear();
+ ++doc_number_multipart;
+ }
+ }
+ */
+
+
+
+/*
+ void doc::compute_thetas(int_matrix & word_partition, mapid & theta_doc, int black_module) {
+ 
+ 
+ theta_doc.clear();
+ SI covered_words;
+ 
+ RANGE_loop(i, word_partition) {
+ int module=word_partition[i][0];
+ word_partition[i].pop_front();
+ 
+ RANGE_loop(j, word_partition[i]) {
+ 
+ if(wn_occurences_.count(word_partition[i][j])==0) {
+ cerr<<"error in compute_thetas"<<endl;
+ exit(-1);
+ }
+ int_histogram(module, theta_doc, double(wn_occurences_[word_partition[i][j]])/num_words_);
+ covered_words.insert(word_partition[i][j]);
+ }
+ }
+ 
+ // words which are not covered 
+ IT_loop(mapii, itm, wn_occurences_) if(covered_words.find(itm->first)==covered_words.end()) {
+ int_histogram(black_module, theta_doc, double(itm->second)/num_words_);
+ }
+ 
+ // check that the norm is one
+ double norm=0.;
+ IT_loop(mapid, itm, theta_doc) norm+=itm->second;
+ if(fabs(norm-1)>1e-4) {
+ cerr<<"error in norm"<<endl;
+ exit(-1);
+ }
+ 
+ }*/
+
+
+
+
+/*
+ phis_ldav_.clear();
+ betas_ldav_.clear();
+ class_word_ldav_.clear();
+ class_total_ldav_.clear();
+ */
+// betas_ldav_ is inverted respect with the original code
+// I think it's better this way (one long vector of short vectors rather 
+// than few long vectors)
+// should I do the same thing on class_word_ldav_?
+
+/*
+ DD void_dd_numtops;
+ void_dd_numtops.assign(num_topics_ldav_, 0.);
+ DD void_dd_numtops_minus100;
+ void_dd_numtops_minus100.assign(num_topics_ldav_, -100.);
+ 
+ 
+ RANGE_loop(wn, word_occurrences_) {
+ betas_ldav_.push_back(void_dd_numtops_minus100);
+ // this could be made more efficient (making it depend on single documents)
+ phis_ldav_.push_back(void_dd_numtops);
+ }
+ 
+ // copying topic_word in betas_ldav_
+ // this should be avoided and pass betas_ldav_ directly
+ // to the lda model
+ for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+ topic_itm!=topic_word.end(); topic_itm++) {
+ 
+ //int word_wn=0;
+ IT_loop(mapid, itm2, topic_itm->second) { 
+ //assert_ints(itm2->first, word_wn);
+ int word_wn=itm2->first;
+ if(itm2->second>0)
+ betas_ldav_[word_wn][topic_itm->first]=log(itm2->second);
+ else
+ betas_ldav_[word_wn][topic_itm->first]=-100;
+ }
+ }    
+ set_class_words_to_zeros();
+ */

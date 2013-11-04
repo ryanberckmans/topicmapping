@@ -1,5 +1,28 @@
 
 
+void word_corpus::set_class_words_to_zeros() {
+    
+    // initializing class_word_ldav_ and class_total_ldav_
+    // class_word_ldav_[topic][wn] 
+    // class_total_ldav_[topic]
+    
+    
+    // ============ this should be made more efficient =======
+    class_word_ldav_.clear();
+    class_total_ldav_.clear();
+    
+    
+    DD void_dd_class;
+    void_dd_class.assign(word_occurrences_.size(), 0.);
+    for(int k=0; k<num_topics_ldav_; k++) {
+        class_word_ldav_.push_back(void_dd_class);
+    }
+    class_total_ldav_.assign(num_topics_ldav_, 0.);
+    
+}
+
+
+
 double word_corpus::lda_inference(int doc_number) {
     
     //cout<<"alphas_ldav_:: "<<num_topics_ldav_<<endl;
@@ -23,7 +46,7 @@ double word_corpus::lda_inference(int doc_number) {
         var_gamma[k]=(alphas_ldav_[k] + double(docs_[doc_number].num_words_)/num_topics_ldav_);
         digamma_gam[k]=digamma(var_gamma[k]);
         // phi[word][topic]
-        IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {            
+        IT_loop(deqii, itm, docs_[doc_number].wn_occs_) {            
             phis_ldav_[itm->first][k] = 1.0/num_topics_ldav_;
         }
     }
@@ -42,7 +65,7 @@ double word_corpus::lda_inference(int doc_number) {
         var_iter++;
         // looping over words in doc
         // updating phis_ldav_        
-        IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[doc_number].wn_occs_) {
             // all this refers to this particular word
             int n= itm->first;
             double phisum=0.;            
@@ -71,7 +94,7 @@ double word_corpus::lda_inference(int doc_number) {
         /*
         // updating var_gamma
         var_gamma=alphas_ldav_;
-        IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[doc_number].wn_occs_) {
             RANGE_loop(kk, var_gamma) {
                 var_gamma[kk] += itm->second*(phis_ldav_[itm->first][kk]);
             }
@@ -100,7 +123,7 @@ double word_corpus::lda_inference(int doc_number) {
     //gammas_ldav_.push_back(var_gamma);
     
     // updating stats for betas_ldav_
-    IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) for (int k = 0; k < num_topics_ldav_; k++) {
+    IT_loop(deqii, itm, docs_[doc_number].wn_occs_) for (int k = 0; k < num_topics_ldav_; k++) {
         class_word_ldav_[k][itm->first] += itm->second * phis_ldav_[itm->first][k];
         class_total_ldav_[k] += itm->second * phis_ldav_[itm->first][k];
     }
@@ -163,7 +186,7 @@ double word_corpus::compute_likelihood(int doc_number, DD & var_gamma) {
         - (var_gamma[k] - 1)*(dig[k] - digsum);
         
         
-        IT_loop(mapii, itm, docs_[doc_number].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[doc_number].wn_occs_) {
             
             int n=itm->first;
             if (phis_ldav_[n][k] > 0) {

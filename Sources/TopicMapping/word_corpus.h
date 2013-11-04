@@ -21,10 +21,8 @@ public:
 	~doc(){};
 	
 	void set_from_string(string s, mapsi & word_number_all, mapis & number_word_all);
-    void compute_thetas(int_matrix & word_partition, mapid & theta_doc, int black_module);
 
-	UI num_words_;			// num_words_ in the document
-	mapii wn_occurences_;	// word-number - occurences
+	UI num_words_;			// num_words_ (not unique) in the document
 	deqii wn_occs_;         // word-number - occurences
     
 };
@@ -53,8 +51,11 @@ public:
     
     void write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
                                     string theta_file, string beta_file);
-    void write_short_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
-                                          string theta_file, string beta_file, string beta_file_short, \
+    void write_short_beta_and_theta_files(deque<mapid> & doc_topic,\
+                                          map<int, mapid> & topic_word, \
+                                          string theta_file, \
+                                          string beta_file, \
+                                          string beta_file_short, \
                                           mapid & pt);
     double dimap(int Nruns, \
                  mapid & pt, \
@@ -69,12 +70,6 @@ public:
 private:
     
     void write_partition(mapii & hard_mems);
-
-    void update_doc_num_thetas(DI & doc_numbers,
-                                bool just_one_noise_topic, 
-                                map<int, mapid> & doc_number_thetas, 
-                                int_matrix & word_partition, 
-                                int & doc_number_multipart);
 
     void initial_ptopic(deque<mapid> & doc_topic, map<int, mapii> & word_topic, const mapii & hard_mems, const DI & doc_prevalent_topics);
     void get_betas(map<int, mapii> & word_topic, map<int, mapid> & topic_word, mapid & pt);
@@ -135,14 +130,17 @@ private:
     
     // lda data structures
     // (add explanation here)
-    
+    /*
     deque<DD> phis_ldav_;
     deque<DD> betas_ldav_;
-    DD alphas_ldav_;
     deque<DD> class_word_ldav_;
     DD class_total_ldav_;
+    */
     deque<DD> gammas_ldav_;
+
     int num_topics_ldav_;
+    DD alphas_ldav_;
+
     
     // same thing as before but this is done
     // with sparse data structures

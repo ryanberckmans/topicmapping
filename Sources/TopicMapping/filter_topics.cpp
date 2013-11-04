@@ -1,26 +1,5 @@
 
 
-void word_corpus::update_doc_num_thetas(DI & doc_numbers,
-                                        bool just_one_noise_topic, 
-                                        map<int, mapid> & doc_number_thetas, 
-                                        int_matrix & word_partition, 
-                                        int & doc_number_multipart) {
-    if(word_partition.size()>0) {
-        
-        // getting original label
-        int doc_number_original=doc_numbers[doc_number_multipart];
-        mapid theta_doc;
-        // getting theta
-        int missing_topic=-doc_number_original-1;
-        if(just_one_noise_topic)
-            missing_topic=-1;
-        docs_[doc_number_original].compute_thetas(word_partition, theta_doc, missing_topic);
-        doc_number_thetas[doc_number_original]=theta_doc;
-        word_partition.clear();
-        ++doc_number_multipart;
-    }
-}
-
 
 
 void word_corpus::get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics) {
@@ -68,7 +47,7 @@ void word_corpus::initial_ptopic(deque<mapid> & doc_topic, map<int, mapii> & wor
         
         mapid topic_distr;
         
-        IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[i].wn_occs_) {
             
             if(hard_mems.count(itm->first)>0) {
                 // if the word is in the partition
@@ -84,7 +63,7 @@ void word_corpus::initial_ptopic(deque<mapid> & doc_topic, map<int, mapii> & wor
         
         int prevalent_topic = doc_prevalent_topics[i];
         
-        IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[i].wn_occs_) {
             
             if(hard_mems.count(itm->first)==0) {
                 
@@ -135,7 +114,7 @@ double word_corpus::compute_likelihood(map<int, mapid> & topic_word, map<int, ma
     RANGE_loop(i, docs_) {
         
         
-        IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[i].wn_occs_) {
             double pr=0;
             mapii & possible_topics = word_topic[itm->first];
             
@@ -192,7 +171,7 @@ double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid>
         
         int prevalent_topic = doc_prevalent_topics[i];
         
-        IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[i].wn_occs_) {
             
             // topic num is either the prevalent_topic or the topic
             // the word belongs to originally 
@@ -297,7 +276,7 @@ void word_corpus::get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_m
         
         mapii topic_usage;
         // getting topic_usage for this doc
-        IT_loop(mapii, itm, docs_[i].wn_occurences_) {
+        IT_loop(deqii, itm, docs_[i].wn_occs_) {
             if(hard_mems.count(itm->first)>0) {
                 int topic_num=hard_mems.at(itm->first);
                 int_histogram(topic_num, topic_usage, itm->second);
