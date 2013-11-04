@@ -15,7 +15,9 @@ void word_corpus::set_from_file(string filename) {
         
 		doc newdoc;
 		newdoc.set_from_string(buffer, word_number_all, number_word_all);
-		IT_loop(mapii, itm, newdoc.wn_occurences_) {			
+		IT_loop(mapii, itm, newdoc.wn_occurences_) {
+            // storing data in deqii
+            newdoc.wn_occs_.push_back(*itm);
 			int_histogram(itm->first, wn_occurences__all, itm->second);
 		}
 		if(newdoc.num_words_>0)

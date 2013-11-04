@@ -66,7 +66,6 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     
     general_assert(betas_ldav_map_.size()>0, "empty betas");
     
-    
     mapid & var_gamma = gammas_ldav_map_[doc_number];
     mapid digamma_gam;
     
@@ -85,7 +84,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         prints(var_gamma);
     }
     
-    IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {            
+    IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {            
         // clearing the map phis_ldav_map_[wn]
         // phis_ldav_map_ must always be used 
         // as phis_ldav_map_wn with loop over this doc
@@ -121,18 +120,17 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         // looping over words in doc
         // updating phis_ldav_
         
-        
-        IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {
+        IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
         
             //======================================================
             // all this refers to this particular word (wn_occ->first)
             mapid oldphi;
             double phisum=-1;
-            mapid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
+            deqid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
             
             // loop over topics for this word
             bool first_time_here=true;
-            IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
+            IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
                 
                 oldphi[topic_pr->first] = topic_pr->second;
                 topic_pr->second =  digamma_gam[topic_pr->first] + 
@@ -152,7 +150,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
                     topic_pr->second -= double(wn_occ->second) /num_topics_ldav_;
                     digamma_gam[topic_pr->first]=digamma(topic_pr->second);
                 }
-                IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
+                IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
                     topic_pr->second = exp(topic_pr->second - phisum);
                     var_gamma[topic_pr->first] += wn_occ->second * (topic_pr->second);
                     digamma_gam[topic_pr->first]=digamma(var_gamma[topic_pr->first]);
@@ -160,7 +158,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
                 
             } else {
                 // 
-                IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
+                IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
                     topic_pr->second = exp(topic_pr->second - phisum);
                     var_gamma[topic_pr->first] += wn_occ->second * (topic_pr->second - oldphi[topic_pr->first]);
                     digamma_gam[topic_pr->first]=digamma(var_gamma[topic_pr->first]);
@@ -169,7 +167,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
             
             if(verbose) {
                 cout<<"wn:: "<<wn_occ->first<<endl;
-                prints(phis_ldav_map_wn);
+                //prints(phis_ldav_map_wn);
             }
             
             //======================================================
@@ -194,12 +192,12 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     // updates for M steps
     
     // updating stats for betas_ldav_
-    IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {
+    IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
     
-        mapid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
+        deqid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
         mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn_occ->first);
         
-        IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
+        IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
             const int & k = topic_pr->first;
             int_histogram(k, class_word_ldav_map_wn,  wn_occ->second * topic_pr->second );
             int_histogram(k, class_total_ldav_map_, wn_occ->second * topic_pr->second);
@@ -211,10 +209,19 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         prints(alphas_ldav_);
     }
     
-    // if exp(digamma_gam[topic_num])< 1e-12 and var_gamma is very close to the prior
-    // it means this doc is not using that topic whatsoever
-    // (no words have been assigned to that topic at all)
-    // therefore, you can remove it from var_gammas 
+    /*
+     if exp(digamma_gam[topic_num])<< 1 
+     and var_gamma is very close to the prior,
+     it means this doc is barely using topic_num
+     (no words have been assigned to that topic almost at all)
+     therefore, we can remove it from var_gammas,
+     meaning we set var_gamma[topic_num] == alphas_ldav_[topic_num]
+     in other words, we are making a further approximation:
+     we are going to explore only the topic 
+     space where this doc is not using topic_num.
+     this constraint make the likelihood optimization a little bit worse
+     but the algorithm is WAY faster.
+    */
     
     if(verbose)
         cout<<"======== erasing stuff ============="<<endl;
@@ -264,10 +271,10 @@ double word_corpus::compute_likelihood_sparse(int doc_number, \
     }    
     
     
-    IT_loop(mapii, wn_occ, docs_[doc_number].wn_occurences_) {
+    IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
         const int & n = wn_occ->first;
-        mapid & phis_ldav_map_wn= phis_ldav_map_[n];
-        IT_loop(mapid, topic_pr, phis_ldav_map_wn) {
+        deqid & phis_ldav_map_wn= phis_ldav_map_[n];
+        IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
             const int & k = topic_pr->first;
             if (topic_pr->second>0) {
                 likelihood += wn_occ->second * (topic_pr->second*((digamma_gam[k] - digsum) - log(topic_pr->second)

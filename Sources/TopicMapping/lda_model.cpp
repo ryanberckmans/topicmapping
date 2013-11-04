@@ -173,9 +173,10 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // betas_ldav_map_, phis_ldav_map_ and class_word_ldav_map_ have all the same structure
     // betas_ldav_map_[wn]= { topic : value }
     mapid void_mapid;
+    deqid void_deqid;
     RANGE_loop(wn, word_occurrences_) {        
         betas_ldav_map_.push_back(void_mapid);
-        phis_ldav_map_.push_back(void_mapid);
+        phis_ldav_map_.push_back(void_deqid);
         class_word_ldav_map_.push_back(void_mapid);
     }
     

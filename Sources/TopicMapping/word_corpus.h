@@ -25,6 +25,7 @@ public:
 
 	UI num_words_;			// num_words_ in the document
 	mapii wn_occurences_;	// word-number - occurences
+	deqii wn_occs_;         // word-number - occurences
     
 };
 
@@ -145,7 +146,7 @@ private:
     
     // same thing as before but this is done
     // with sparse data structures
-    deque<mapid> phis_ldav_map_;
+    deque<deqid> phis_ldav_map_;
     deque<mapid> betas_ldav_map_;
     deque<mapid> class_word_ldav_map_;
     mapid class_total_ldav_map_;
