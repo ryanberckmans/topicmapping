@@ -70,3 +70,25 @@ double digamma(double x)
 
 
 
+
+double invert_digamma(double y) {
+    
+    // returns x suxh that digamma(x)=y
+    
+    double xold=0.;
+    if(y>-2.22){
+        xold=exp(y)+0.5;
+    } else {
+        xold= -1./(y -digamma(1));
+    }
+    
+    double xnew;
+    for(int iter=0; iter<5; iter++) {
+        xnew= xold - (digamma(xold)-y)/(trigamma(xold));
+        if(fabs(xnew-xold)<1e-6) {
+            return xnew;
+        }
+    }
+    return xnew;
+}
+

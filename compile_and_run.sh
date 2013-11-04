@@ -6,11 +6,10 @@ rm a.out
 g++ -O3 -funroll-loops -Wall  ./Sources/TopicMapping/docmap_tmp.cpp
 
 
-time ./a.out -f run_exp/syn_corpus.txt -part run_exp/infomap.part 
-#-minf 0.15 -maxf 0.17
+time ./a.out -f run_exp/syn_corpus.txt -part run_exp/infomap.part -minf 0.15 -maxf 0.17 > log.log
+
+
 #time ./a.out -f run_exp/syn_corpus.txt -part infomap.part -minf 0.15 -maxf 0.17
-
-
 #time ./a.out -f syn_corpus.txt
 #time ./a.out -f syn_corpus.txt -part infomap.part -minf 0.0 -maxf 0.0001 -nos
 #time ./a.out -fullout -f syn_corpus.txt -part infomap.part -minf 0.0 -maxf 0.0001 -nos
@@ -18,3 +17,11 @@ time ./a.out -f run_exp/syn_corpus.txt -part run_exp/infomap.part
 
 
 compare_models lda_gammas.txt run_exp/lda_gammas.bak run_exp/syn_corpus.txt 
+
+
+compare_models lda_gammas.txt run_exp/syn_thetas.txt run_exp/syn_corpus.txt 
+
+
+#time ./topicmap4nov -f run_exp/syn_corpus.txt -part run_exp/infomap.part -minf 0.15 -maxf 0.17 > log4.log
+
+

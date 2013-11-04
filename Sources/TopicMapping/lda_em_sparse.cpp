@@ -311,6 +311,8 @@ double word_corpus::run_em_sparse() {
     
     // tmp    
     double likelihood_old=-1e300;
+    // this are the varaiational parameters which are the main output of the program
+    deque<DD> gammas_ldav;
     
     while(true) {
         
@@ -346,10 +348,14 @@ double word_corpus::run_em_sparse() {
             IT_loop(mapid, topic_pr, class_word_ldav_map_wn) {
                 if(topic_pr->second > 0) {
                     //cout<<"topic "<<topic_pr->first<<" "<<topic_pr->second<<endl;
-                    betas_ldav_wn[topic_pr->first] = log(topic_pr->second) - log(class_total_ldav_map_.at(topic_pr->first));
+                    betas_ldav_wn[topic_pr->first] = log(topic_pr->second) \
+                                                    - log(class_total_ldav_map_.at(topic_pr->first));
                 } else {
                     // this should never happen
-                    betas_ldav_wn[topic_pr->first] = -100;
+                    //betas_ldav_wn[topic_pr->first] = -100;
+                    cerr<<"Small value in class_word_ldav_map_wn "<<topic_pr->second<<endl;
+                    cerr<<"This is likely a bug! Please contact me: arg.lanci@gmail.com Thanks!"<<endl;
+                    exit(-1);
                 }
             }
         }
@@ -365,8 +371,8 @@ double word_corpus::run_em_sparse() {
         }
         cout<<"________________"<<endl;
         prints(topic_norm);
-        optimize_alpha_sparse();
-        
+        optimize_alpha_sparse(gammas_ldav);
+
         cout<<"log likelihood "<<likelihood_all<<endl;
         // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
@@ -374,10 +380,9 @@ double word_corpus::run_em_sparse() {
         likelihood_old=likelihood_all;
     }
     
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // this was set from optimize_alpha_sparse
     ofstream pout_final("lda_gammas.txt");
-    printm(gammas_ldav_, pout_final);
+    printm(gammas_ldav, pout_final);
     
     return 0.;
 }

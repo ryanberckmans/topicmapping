@@ -111,8 +111,8 @@ private:
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
     void initialize_lda_data(deque<mapid> & doc_topic, map<int, mapid> & topic_word);
-    void optimize_alpha();
-    void optimize_alpha_sparse();
+    void optimize_alpha(deque<DD> & gammas_ldav);
+    void optimize_alpha_sparse(deque<DD> & gammas_ldav);
     
     double compute_likelihood_sparse(int doc_number, \
                                      mapid & var_gamma, mapid & digamma_gam, 
@@ -130,17 +130,20 @@ private:
     
     // lda data structures
     // (add explanation here)
-    /*
+    
+    
+    /* this are for the non-sparse implementation 
+        and are not in use anymore
     deque<DD> phis_ldav_;
     deque<DD> betas_ldav_;
     deque<DD> class_word_ldav_;
     DD class_total_ldav_;
-    */
     deque<DD> gammas_ldav_;
-
+    */
+    
+    
     int num_topics_ldav_;
     DD alphas_ldav_;
-
     
     // same thing as before but this is done
     // with sparse data structures

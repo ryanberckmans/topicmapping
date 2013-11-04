@@ -31,30 +31,6 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // this function is getting all data structure for lda topics ready
     // some asserts are also done and should be removed later
     
-    // ---------- TEMPORARY ----------
-    /*
-    topic_word.clear();
-    ifstream gin("betas.txt");
-    //ifstream gin("run_exp/final.beta");
-    string gins;
-    int count_line=0;
-    while(getline(gin, gins)) {
-        DD vv;
-        cast_string_to_doubles(gins, vv);
-        mapid topic_word_mapid;
-        double check_sum=0.;
-        RANGE_loop(i, vv) {
-            topic_word_mapid[i]=exp(vv[i]);
-            check_sum+=topic_word_mapid[i];
-        }
-        if(fabs(check_sum-1)>1e-4) {
-            cerr<<"error in check_sum "<<check_sum-1<<endl; exit(-1);
-        }
-        topic_word[count_line]=topic_word_mapid;
-        count_line+=1;
-    }
-    // TEMPORARY ---------------------
-    //*/
     
     // asserting everything is starting from zero and being consecutive
     DI all_topics;
@@ -74,32 +50,15 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // and should be done
     // using doc_topic
     alphas_ldav_.clear();
-    alphas_ldav_.assign(num_topics_ldav_, 0.1336611513);
-    
-    
-    
-    DD void_dd_numtops;
-    void_dd_numtops.assign(num_topics_ldav_, 0.);
-
-    gammas_ldav_.clear();
-    // initializing gammas
-    RANGE_loop(doc_number, docs_) {
-        gammas_ldav_.push_back(void_dd_numtops);
-    }
+    // this should be a parameter !!!!!!!!!!!!!!!!!
+    alphas_ldav_.assign(num_topics_ldav_, 0.1);
     
     
     cout<<"============== DIMENSIONS =============="<<endl;
-    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
-    
-    //cout<<"phis_ldav_ "<<phis_ldav_.size()<<" x "<<phis_ldav_[0].size()<<endl;
-    //cout<<"betas_ldav_ "<<betas_ldav_.size()<<" x "<<betas_ldav_[0].size()<<endl;
-    
+    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;    
     cout<<"alphas_ldav_ "<<alphas_ldav_.size()<<endl;
     
-    //cout<<"class_word_ldav_ "<<class_word_ldav_.size()<<" x "<<class_word_ldav_[0].size()<<endl;
-    //cout<<"class_total_ldav_ "<<class_total_ldav_.size()<<endl;
     
-    cout<<"gammas_ldav_ "<<gammas_ldav_.size()<<" x "<<gammas_ldav_[0].size()<<endl;
     
     // =============== sparse data structure initialization ======================= //
     
