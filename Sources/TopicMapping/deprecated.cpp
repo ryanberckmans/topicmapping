@@ -254,3 +254,71 @@ void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & to
     }
 }
 
+
+
+
+
+// it would be better to pass this ====================================================
+
+/*mapid & var_gamma = gammas_ldav_map_[doc_number];
+ mapid digamma_gam;
+ IT_loop(mapid, topic_pr, var_gamma) digamma_gam[topic_pr->first]=digamma(topic_pr->second);
+ */
+
+/*
+ bool verbose=false;
+ // =========== independent =================== of var_gamma values
+ double sum_alphas=0.;
+ double sum_lg_alphas=0.;
+ 
+ for (int k = 0; k < num_topics_ldav_; k++) {
+ sum_alphas += alphas_ldav_[k];
+ sum_lg_alphas += lgamma(alphas_ldav_[k]);
+ }
+ 
+ double var_gamma_sum=sum_alphas + docs_[doc_number].num_words_;
+ double digsum2 = digamma(var_gamma_sum);
+ 
+ if(verbose) {
+ cout<<"sum_alphas local "<<sum_alphas<<" =="<<endl;
+ cout<<"digsum... "<<digsum2<<" == "<<digsum<<endl;
+ cout<<"alphas_terms:: "<<lgamma(sum_alphas) - sum_lg_alphas<<" == "<<endl; 
+ }
+ 
+ double lik_const=-lgamma(var_gamma_sum);
+ double likelihood = lgamma(sum_alphas) 
+ - sum_lg_alphas 
+ - lgamma(var_gamma_sum);
+ 
+ // this sum if over values which are not found in var_gamma
+ // var_gamma[k]= alphas_ldav_[k]
+ 
+ // It's probably good to store digamma(alphas_ldav_[k]) !!!!!!!!!!!!!!
+ // digamma_gam[k] = digamma(alphas_ldav_[k])
+ 
+ for (int k = 0; k < num_topics_ldav_; k++) if(var_gamma.count(k)==0) {
+ 
+ likelihood +=
+ (alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum) 
+ + lgamma(alphas_ldav_[k])
+ - (alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum);
+ lik_const+=(alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum) 
+ + lgamma(alphas_ldav_[k])
+ - (alphas_ldav_[k] - 1)*(digamma(alphas_ldav_[k]) - digsum);
+ 
+ }
+ 
+ if(verbose) {
+ cout<<"compute_likelihood_sparse_constants:: "<<lik_const<<endl;
+ cout<<"check compute_likelihood_sparse_constants:: ";
+ double digggsum;
+ cout<<compute_likelihood_sparse_constants(doc_number, var_gamma, digggsum, sum_alphas)<<endl;
+ cout<<"digggsum "<<digggsum<<endl;
+ }
+ 
+ assert_floats(lik_const, likelihood_const, "error with const");
+ assert_floats(likelihood_alpha, lgamma(sum_alphas) - sum_lg_alphas, "error with lik_alpha");
+ */
+
+// =========== independent =================== of var_gamma values
+

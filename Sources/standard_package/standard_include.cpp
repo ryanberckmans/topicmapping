@@ -30,6 +30,7 @@ typedef deque<int> DI;
 typedef set<int> SI;
 typedef deque<deque<int> > int_matrix;
 typedef map<int, double> mapid;
+typedef deque<pair<int, double> > deqid;
 typedef map<int, int> mapii;
 typedef map<string, int> mapsi;
 typedef map<int, string> mapis;

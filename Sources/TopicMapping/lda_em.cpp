@@ -185,7 +185,6 @@ double word_corpus::run_em() {
     cout<<"running EM"<<endl;    
     
     // tmp    
-    //ofstream infout("inf.txt");
     double likelihood_old=-1e300;
     
     while(true) {
@@ -194,17 +193,18 @@ double word_corpus::run_em() {
         set_class_words_to_zeros();
         //gammas_ldav_.clear();
         double likelihood_all=0.;
+        ofstream infout("inf.txt");
         RANGE_loop(doc_number, docs_) {
             if (doc_number%100==0)
                 cout<<"running lda-inference for doc "<<doc_number<<endl;
             double likelihood_doc = lda_inference(doc_number);
             likelihood_all+=likelihood_doc;
-            //infout<<likelihood_doc<<endl;
+            infout<<likelihood_doc<<endl;
             //infout<<likelihood_doc<<" "<<lda_inference_sparse(doc_number)<<endl;
             //exit(-1);
         }
-        //infout.close();
-        
+        infout.close();
+        exit(-1);
         
         // M step
         // optimizing betas

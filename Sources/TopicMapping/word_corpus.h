@@ -120,14 +120,16 @@ private:
     
     double compute_likelihood_sparse(int doc_number, \
                                      mapid & var_gamma, mapid & digamma_gam, 
-                                     const double & digsum);
+                                     const double & digsum, 
+                                     const double & likelihood_alpha,
+                                     const double & likelihood_const);
                                      
     double compute_likelihood_sparse_constants(int doc_number, \
                                                mapid & var_gamma, \
                                                double & digsum, \
                                                const double & sum_alphas);
     double compute_likelihood_alpha_terms(double & sum_alphas);
-    double lda_inference_sparse(int doc_number, const double & sum_alphas);
+    double lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha);
 
     
     // lda data structures
