@@ -102,7 +102,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
         }
     }
 
-
+    /*
     cout<<"check normalization"<<endl;
     mapid topic_norm;
     RANGE_loop(wn, word_occurrences_) {
@@ -113,6 +113,7 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     }
     cout<<"________________"<<endl;
     prints(topic_norm);
+    */
     
     set_class_words_to_zeros_map();
     

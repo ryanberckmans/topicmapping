@@ -17,6 +17,9 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     */
     
     
+    double sum_alphas=0.;
+    RANGE_loop(k, alphas_ldav_) sum_alphas+=alphas_ldav_[k];
+    
     // ps[i][k] is the probability of topic k in sample i
     deque<DD> ps;
     
@@ -29,6 +32,7 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     RANGE_loop(i, gammas_ldav) {
         ps.push_back(gammas_ldav[i]);
         double sum_=normalize_one(ps[i]);
+        assert_floats((docs_[i].num_words_+sum_alphas)/sum_, 1., "error in gamma terms");
         sum_gamma_over_topics[i]=digamma(sum_);
     }
     
@@ -76,47 +80,59 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     }
     
     
-    RANGE_loop(k, average_ps) gamma_terms[k]/= gammas_ldav.size();
+    RANGE_loop(k, gamma_terms) gamma_terms[k]/= gammas_ldav.size();
     
-    /*
-    cout<<"average_ps"<<endl;
+    
+    /*cout<<"average_ps"<<endl;
     prints(average_ps);
     cout<<"average_square_ps"<<endl;
     prints(average_square_ps);
     cout<<"gamma_terms"<<endl;
-    prints(gamma_terms);
-    */
-
+    prints(gamma_terms);*/
+    //cout<<"sum_alphas:::: "<<sum_alphas<<endl;
+    
     
     double alpha_sum=   (average_ps[0]-average_square_ps[0])/
                         (  average_square_ps[0] - average_ps[0]*average_ps[0] );
     
+    
+    
     DD alphas;
     RANGE_loop(k, average_ps) alphas.push_back(average_ps[k]*alpha_sum);
-    //cout<<"alphas init"<<endl;
-    //prints(alphas);
-    
-    
-    double sum_alphas=0.;
+    sum_alphas=0.;
     RANGE_loop(k, alphas) sum_alphas+=alphas[k];
+
+    //cout<<"alpha_sum:: "<<alpha_sum<<" "<<sum_alphas<<endl;
+
     
     int iter=0;
     while(true) {
         double new_sum=0.;
+        //cout<<"gamma terms"<<endl;
+        //prints(gamma_terms);
+        //cout<<"-->> "<<digamma(sum_alphas)<<endl;
         RANGE_loop(k, alphas) {
             alphas[k]= invert_digamma(digamma(sum_alphas) + gamma_terms[k] );
             new_sum+=alphas[k];
         }
-        sum_alphas=new_sum;
+        //cout<<"new_sum:: "<<new_sum<<endl;
+        if(new_sum!=new_sum) {
+            RANGE_loop(k, alphas) alphas[k]=1.;
+            cerr<<"warning! alphas are too big!"<<endl;
+            new_sum=alphas.size();
+            break;
+        }
+        
         if(fabs(sum_alphas-new_sum)<1e-7 or iter>100) {
             break;
         }
+        sum_alphas=new_sum;
         ++iter;
         
     }
 
-    cout<<"new alphas"<<endl;
-    prints(alphas);
+    cout<<"new sum_alphas: "<<sum_alphas<<endl;
+    //prints(alphas);
     alphas_ldav_=alphas;
     
     

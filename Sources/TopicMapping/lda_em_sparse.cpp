@@ -1,5 +1,6 @@
 
 # define LIK_precision 1e-5
+# define MAX_ITER 1000
 // exp(-14) ~ 1e-6
 # define DIGAMMA_precision -14.
 # define VARGAMMA_precision 1e-6
@@ -314,8 +315,10 @@ double word_corpus::run_em_sparse() {
     // this are the varaiational parameters which are the main output of the program
     deque<DD> gammas_ldav;
     
+    int iter=0;
     while(true) {
         
+        ++iter;
         // E steps
         double sum_alphas=0.;
         double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
@@ -325,21 +328,20 @@ double word_corpus::run_em_sparse() {
         //gammas_ldav_.clear();
         double likelihood_all=0.;
         //ofstream infout("inf.txt");
+        cout<<"E step "<<iter<<endl;
         RANGE_loop(doc_number, docs_) {
-            if (doc_number%100==0)
-                cout<<"running lda-inference for doc "<<doc_number<<endl;
+            if (doc_number%1000==0 & doc_number>0)
+                cout<<"running lda E-step for doc "<<doc_number<<endl;
             double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
             likelihood_all+=likelihood_doc;
             //infout<<likelihood_doc<<endl;
-            //exit(-1);
         }
         //infout.close();
         //exit(-1);
         
         // M step
         // optimizing betas
-        
-        
+        //cout<<"M step "<<iter<<endl;
         RANGE_loop(wn, word_occurrences_) {
         
             mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn);
@@ -360,8 +362,7 @@ double word_corpus::run_em_sparse() {
             }
         }
         
-        // check betas is  normalized!!!!!!!!!!
-        // remove thissssssssssssss
+        /* check betas is  normalized!!!!!!!!!!
         mapid topic_norm;
         RANGE_loop(wn, word_occurrences_) {
             mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
@@ -371,11 +372,14 @@ double word_corpus::run_em_sparse() {
         }
         cout<<"________________"<<endl;
         prints(topic_norm);
+        */
         optimize_alpha_sparse(gammas_ldav);
 
         cout<<"log likelihood "<<likelihood_all<<endl;
         // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
+            break;
+        if(iter>MAX_ITER)
             break;
         likelihood_old=likelihood_all;
     }
