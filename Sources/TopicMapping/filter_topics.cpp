@@ -149,8 +149,8 @@ double word_corpus::compute_likelihood(map<int, mapid> & topic_word, map<int, ma
 
 double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid> & doc_topic, \
                                       map<int, mapid> & topic_word, mapid & pt, \
-                                      const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics, \
-                                      deque<mapii> & doc_assignments) {
+                                      const mapii & hard_mems, \
+                                      double filtering_par, const DI & doc_prevalent_topics) {
     
     topic_word.clear();
     pt.clear();
@@ -159,10 +159,10 @@ double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid>
     // and word_topic[word] as n(w,t)
     
     // doc_assignments[doc][wn] is the topic to which the word has been assigned
-    doc_assignments.clear();
+    //doc_assignments.clear();
     RANGE_loop(i, docs_) {
         mapii void_mapii_;
-        doc_assignments.push_back(void_mapii_);
+        //doc_assignments.push_back(void_mapii_);
     }
     
     
@@ -188,7 +188,7 @@ double word_corpus::likelihood_filter(map<int, mapii> & word_topic, deque<mapid>
                 topic_num=prevalent_topic;
             }
             // we insert the word assignement
-            doc_assignments[i][itm->first]=topic_num;
+            //doc_assignments[i][itm->first]=topic_num;
         }
         
         IT_loop(mapid, itm, doc_topic[i]) if(itm->second<filtering_par and itm->first!=prevalent_topic) {
@@ -329,7 +329,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
                                       mapid & pt_best, \
                                       deque<mapid> & doc_topic_best, \
                                       map<int, mapid> & topic_word_best, \
-                                      deque<mapii> & doc_assignments_best, bool verbose, double step) {
+                                    bool verbose, double step) {
     
     
     // for each document, the topic which we believe
@@ -356,13 +356,13 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
         deque<mapid> doc_topic;     // for each doc, {topic:probability}
         map<int, mapid> topic_word;
         mapid pt;
-        deque<mapii> doc_assignments;
+        //deque<mapii> doc_assignments;
         
         word_topic= word_topic_initial;
         doc_topic= doc_topic_initial;
         
         // filtering 
-        double loglikelihood=likelihood_filter(word_topic, doc_topic, topic_word, pt, hard_mems, filtering_par, doc_prevalent_topics, doc_assignments);
+        double loglikelihood=likelihood_filter(word_topic, doc_topic, topic_word, pt, hard_mems, filtering_par, doc_prevalent_topics);
         
         //double aic= (docs_.size()+word_occurrences_.size())*(topic_word.size()-1) - loglikelihood;
         if(verbose) {
@@ -374,7 +374,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
             optimal_par=filtering_par;
             doc_topic_best=doc_topic;
             topic_word_best=topic_word;
-            doc_assignments_best=doc_assignments;
+            //doc_assignments_best=doc_assignments;
             pt_best=pt;
             eff_ntopics=compute_eff_num_topics(pt);
             if(verbose) cout<<"best filtering so far: "<<optimal_par<<endl;
@@ -383,7 +383,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
     }
     
     // sorting topic names so that they start from zero and there are no gaps
-    make_topic_names_consecutive(doc_topic_best, topic_word_best, doc_assignments_best, pt_best);
+    make_topic_names_consecutive(doc_topic_best, topic_word_best, pt_best);
     
     if(verbose) cout<<"optimal filtering: "<<optimal_par<<endl;
     
@@ -400,12 +400,11 @@ double word_corpus::dimap(int Nruns, \
                           double step,
                           mapid & pt, \
                           deque<mapid> & doc_topic_best, \
-                          map<int, mapid> & topic_word_best, \
-                          deque<mapii> & doc_assignments) {
+                          map<int, mapid> & topic_word_best) {
     
     doc_topic_best.clear();
     topic_word_best.clear();
-    doc_assignments.clear();
+    //doc_assignments.clear();
     pt.clear();
     
     bool verbose=true;
@@ -443,7 +442,7 @@ double word_corpus::dimap(int Nruns, \
     // max-likelihood filter
     double eff_ntopics=optimal_filtering(hard_memberships, 
                                          pt, doc_topic_best,
-                                         topic_word_best, doc_assignments,
+                                         topic_word_best,
                                          verbose, step);
     
     return eff_ntopics;

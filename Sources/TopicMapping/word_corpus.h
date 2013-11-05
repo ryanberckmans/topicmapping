@@ -61,8 +61,7 @@ public:
                  double step,
                  mapid & pt, \
                  deque<mapid> & doc_topic_best, \
-                 map<int, mapid> & topic_word_best, \
-                 deque<mapii> & doc_assignments);
+                 map<int, mapid> & topic_word_best);
     
     double lda_model(deque<mapid> & doc_topic, 
                      map<int, mapid> & topic_word, double alpha_init);
@@ -81,8 +80,7 @@ private:
     double compute_likelihood(map<int, mapid> & topic_word, map<int, mapii> & word_topic, deque<mapid> & doc_topic);
     double likelihood_filter(map<int, mapii> & word_topic, deque<mapid> & doc_topic, \
                              map<int, mapid> & topic_word, mapid & pt, \
-                             const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics, \
-                             deque<mapii> & doc_assignments);
+                             const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics);
     void get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics);
     void get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems);
 
@@ -90,7 +88,6 @@ private:
                              mapid & pt_best, \
                              deque<mapid> & doc_topic_best, \
                              map<int, mapid> & topic_word_best, \
-                             deque<mapii> & doc_assignments_best, \
                              bool verbose, double step);
     
     

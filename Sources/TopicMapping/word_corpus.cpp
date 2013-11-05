@@ -35,7 +35,7 @@ void word_corpus::set_from_file(string filename) {
 	}	
     
 	cout<<"total_words: "<<total_words<<" total unique words: "<<wn_occurences__all.size()<<endl;
-	cout<<"#docs_ "<<docs_.size()<<endl;
+	cout<<"#docs "<<docs_.size()<<endl;
 	for(multimap<int, int>::iterator itm=occurences_wn.begin(); itm!=occurences_wn.end(); itm++) {			
 		pout<<number_word_all[itm->second]<<" "<<itm->second<<" "<<itm->first<<endl;
 	}

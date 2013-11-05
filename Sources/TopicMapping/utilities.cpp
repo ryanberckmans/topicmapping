@@ -45,7 +45,7 @@ int max_element_mapid(mapid & m) {
 
 void make_topic_names_consecutive(deque<mapid> & doc_topic, \
                                   map<int, mapid> & topic_word, \
-                                  deque<mapii> & doc_assignments, mapid & pt) {
+                                  mapid & pt) {
     
     // for each topic, I use consecutive names
     mapii old_to_new_labels;
@@ -71,12 +71,12 @@ void make_topic_names_consecutive(deque<mapid> & doc_topic, \
     }
     topic_word= new_topic_word;
     
-    // fixing doc_assignments
+    /* fixing doc_assignments
     RANGE_loop(i, doc_assignments) {        
         IT_loop(mapii, itm, doc_assignments[i]) {
             itm->second=old_to_new_labels.at(itm->second);
         }
-    }
+    }*/
 
     // fixing pt
     mapid new_pt;

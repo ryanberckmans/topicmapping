@@ -29,8 +29,6 @@ int main(int argc, char * argv[]) {
     deque<mapid> doc_topic_best;
     // topic_word_best[topic][word] is p(w|t)
     map<int, mapid> topic_word_best;
-    // doc_assignments[doc][wn] is the topic to which the word has been assigned
-    deque<mapii> doc_assignments;
     // pt[topic] is p(t)
     mapid pt;
     
@@ -38,8 +36,7 @@ int main(int argc, char * argv[]) {
     double eff_ntopics=C.dimap(P.int_ps.at("-r"), \
                                P.double_ps.at("-step"),
                                pt,doc_topic_best, \
-                               topic_word_best,
-                               doc_assignments);
+                               topic_word_best);
     
     cout<<"Effective number topics: "<<eff_ntopics<<endl;
     
