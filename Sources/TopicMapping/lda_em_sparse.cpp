@@ -292,11 +292,38 @@ double word_corpus::compute_likelihood_alpha_terms(double & sum_alphas) {
 }
 
 
+double word_corpus::E_step(ostream & likout, bool verbose) {
+    
+    
+    // performing E step and returning likelihood
+    // if verbose, write likelihood of each doc to a file
+
+    double sum_alphas=0.;
+    double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
+    
+    set_class_words_to_zeros_map();
+    
+    double likelihood_all=0.;
+    RANGE_loop(doc_number, docs_) {
+        if (doc_number%1000==0 and doc_number>0)
+            cout<<"running lda E-step for doc "<<doc_number<<endl;
+        double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
+        // writing likelihood of this doc to file
+        if(verbose)
+            likout<<likelihood_doc<<endl;
+        likelihood_all+=likelihood_doc;
+        
+    }
+    return likelihood_all;
+    
+    
+}
+
 double word_corpus::run_em_sparse() {
     
     cout<<"running EM"<<endl;    
     
-    // tmp    
+    ofstream likout("log_likelihood_per_doc.txt");    
     double likelihood_old=-1e300;
     // this are the varaiational parameters which are the main output of the program
     deque<DD> gammas_ldav;
@@ -305,26 +332,12 @@ double word_corpus::run_em_sparse() {
     while(true) {
         
         ++iter;
-        // E steps
-        double sum_alphas=0.;
-        double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
-        //cout<<"likelihood_alpha==== "<<likelihood_alpha<<" sum_alphas "<<sum_alphas<<endl;
-
-        set_class_words_to_zeros_map();
-
-        double likelihood_all=0.;
+        // E step
         cout<<"E step "<<iter<<endl;
-        RANGE_loop(doc_number, docs_) {
-            if (doc_number%1000==0 and doc_number>0)
-                cout<<"running lda E-step for doc "<<doc_number<<endl;
-            double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
-            likelihood_all+=likelihood_doc;
-
-        }
-
+        double likelihood_all=E_step(likout, false);
+        
         // M step
         // optimizing betas
-
         RANGE_loop(wn, word_occurrences_) {
         
             mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn);
@@ -342,7 +355,6 @@ double word_corpus::run_em_sparse() {
                 }
             }
         }
-        
         // optimizing alphas
         optimize_alpha_sparse(gammas_ldav);
 
@@ -353,7 +365,13 @@ double word_corpus::run_em_sparse() {
             break;
         likelihood_old=likelihood_all;
     }
-    
+    cout<<"final E step"<<endl;
+    E_step(likout, true);
+    optimize_alpha_sparse(gammas_ldav);
+    cout<<"log likelihood "<<likelihood_all<<endl;
+
+
+
     // this was set from optimize_alpha_sparse
     ofstream pout_final("lda_gammas.txt");
     printm(gammas_ldav, pout_final);

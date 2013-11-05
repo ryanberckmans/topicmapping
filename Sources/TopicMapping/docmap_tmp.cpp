@@ -40,13 +40,14 @@ int main(int argc, char * argv[]) {
     
     cout<<"Effective number topics: "<<eff_ntopics<<endl;
     
+    // we should probably remove this (intermediate step)
     // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
     C.write_short_beta_and_theta_files(doc_topic_best, topic_word_best, \
-                                       "doc_topics.txt", "topic_words.txt", "topic_summary.txt", pt);
+                                       "doc_topics.txt", "topic_words.txt", "topic_summary.txt", pt);    
     C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
     // optimizing LDA
-    C.lda_model(doc_topic_best, topic_word_best, P.double_ps.at("-alpha"));
+    C.lda_model(topic_word_best, P.double_ps.at("-alpha"));
     
     
     

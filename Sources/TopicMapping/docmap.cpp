@@ -49,7 +49,7 @@ int main(int argc, char * argv[]) {
     C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
     // optimizing LDA
-    C.lda_model(doc_topic_best, topic_word_best, P.double_ps.at("-alpha"));
+    C.lda_model(topic_word_best, P.double_ps.at("-alpha"));
     
     
     

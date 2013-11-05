@@ -63,8 +63,7 @@ public:
                  deque<mapid> & doc_topic_best, \
                  map<int, mapid> & topic_word_best);
     
-    double lda_model(deque<mapid> & doc_topic, 
-                     map<int, mapid> & topic_word, double alpha_init);
+    double lda_model(map<int, mapid> & topic_word, double alpha_init);
 
     
 private:
@@ -109,12 +108,12 @@ private:
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
+    double E_step(ostream & likout, bool verbose);
     double run_em();
     double run_em_sparse();
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
-    void initialize_lda_data(deque<mapid> & doc_topic, 
-                             map<int, mapid> & topic_word, double alphas_init);
+    void initialize_lda_data(map<int, mapid> & topic_word, double alphas_init);
     void optimize_alpha(deque<DD> & gammas_ldav);
     void optimize_alpha_sparse(deque<DD> & gammas_ldav);
     
