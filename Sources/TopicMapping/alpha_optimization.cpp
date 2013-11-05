@@ -32,7 +32,8 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     RANGE_loop(i, gammas_ldav) {
         ps.push_back(gammas_ldav[i]);
         double sum_=normalize_one(ps[i]);
-        assert_floats((docs_[i].num_words_+sum_alphas)/sum_, 1., "error in gamma terms");
+        // this assert is true but thre might be round-off problems
+        //assert_floats((docs_[i].num_words_+sum_alphas)/sum_, 1., "error in gamma terms");
         sum_gamma_over_topics[i]=digamma(sum_);
     }
     

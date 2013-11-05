@@ -1,7 +1,6 @@
 
 
 
-
 void word_corpus::get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics) {
     
     // this function is deleting from hard_mems words which appear in topics

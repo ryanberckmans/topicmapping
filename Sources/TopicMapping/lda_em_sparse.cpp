@@ -4,7 +4,7 @@
 // exp(-14) ~ 1e-6
 # define DIGAMMA_precision -14.
 # define VARGAMMA_precision 1e-6
-
+# define SMALL_LOG -100
 
 
 double word_corpus::compute_likelihood_sparse_constants(int doc_number, \
@@ -21,7 +21,8 @@ double word_corpus::compute_likelihood_sparse_constants(int doc_number, \
     
     // this sum if over values which are not found in var_gamma
     // var_gamma[k]= alphas_ldav_[k]
-    // It's probably good to store digamma(alphas_ldav_[k]) !!!!!!!!!!!!!!
+    // It's probably good to store digamma(alphas_ldav_[k])
+    // (micro-optimization?)
     // digamma_gam[k] = digamma(alphas_ldav_[k])
     
     for (int k = 0; k < num_topics_ldav_; k++) if(var_gamma.count(k)==0) {
@@ -40,9 +41,6 @@ double word_corpus::compute_likelihood_sparse_constants(int doc_number, \
 
 double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha) {
     
-    // phis_ldav_map_wn
-    // should probably be a deque<pair<int, double> >
-    // should be faster
     
     /*
         this function is the equivalent of lda_inference
@@ -99,10 +97,6 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
             phis_ldav_map_wn.push_back(make_pair(topic_pr->first, 1.0/num_topics_ldav_));
             
         }
-        // this considers everything
-        //IT_loop(mapid, topic_pr, var_gamma) {
-        //    phis_ldav_map_wn[topic_pr->first] = 1.0/num_topics_ldav_;
-        //}
     }
     
     
@@ -115,7 +109,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     double likelihood_old=0;
     int var_iter=0;
     
-    while(converged>1e-5 and var_iter<1000) {        
+    while(converged>LIK_precision and var_iter<MAX_ITER) {        
         
         ++var_iter;
         // looping over words in doc
@@ -179,19 +173,14 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         
         if(likelihood!=likelihood) {
             cerr<<"error in likelihood:: "<<likelihood<<" doc_number:: "<<doc_number<<endl;
+            cerr<<"This should not happen. Please contact me: arg.lanci@gmail.com"<<endl;
             exit(-1);
         }
         converged = (likelihood_old - likelihood) / likelihood_old;
         likelihood_old = likelihood;
-        /*
-         cout<<"iter "<<var_iter<<endl;
-         prints(var_gamma);
-         cout<<"likelihood:: "<<likelihood<<" "<<converged<<endl;
-         */
     }
     
     // updates for M steps
-    
     // updating stats for betas_ldav_
     IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
     
@@ -244,10 +233,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     
     
     if(verbose) cout<<"=========doc topic space: "<<var_gamma.size()<<endl;
-    
-    //cout<<"likelihood::: "<<likelihood<<endl;
-    //return likelihood;
-    //exit(-1);
+
     return likelihood;
 }
 
@@ -265,7 +251,7 @@ double word_corpus::compute_likelihood_sparse(int doc_number, \
         
         int k = topic_pr->first;
         // the part with the digsum could be removed from here
-        // you should also use topic_pr->!!!!!!!!!!!!!!!
+        // probably a micro-optimization, though  
         likelihood += (alphas_ldav_[k] - 1) * (digamma_gam[k] - digsum) \
                         + lgamma(topic_pr->second) \
                         - (topic_pr->second - 1) * (digamma_gam[k] - digsum);
@@ -279,7 +265,7 @@ double word_corpus::compute_likelihood_sparse(int doc_number, \
             const int & k = topic_pr->first;
             if (topic_pr->second>0) {
                 likelihood += wn_occ->second * (topic_pr->second*((digamma_gam[k] - digsum) - log(topic_pr->second)
-                                                               +  get_from_mapid(betas_ldav_map_.at(n), k, -100) )    );
+                                                               +  get_from_mapid(betas_ldav_map_.at(n), k, SMALL_LOG) )    );
             }
         }
     }
@@ -323,25 +309,22 @@ double word_corpus::run_em_sparse() {
         double sum_alphas=0.;
         double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
         //cout<<"likelihood_alpha==== "<<likelihood_alpha<<" sum_alphas "<<sum_alphas<<endl;
-        //likelihood_alpha=0.;
+
         set_class_words_to_zeros_map();
-        //gammas_ldav_.clear();
+
         double likelihood_all=0.;
-        //ofstream infout("inf.txt");
         cout<<"E step "<<iter<<endl;
         RANGE_loop(doc_number, docs_) {
             if (doc_number%1000==0 & doc_number>0)
                 cout<<"running lda E-step for doc "<<doc_number<<endl;
             double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
             likelihood_all+=likelihood_doc;
-            //infout<<likelihood_doc<<endl;
+
         }
-        //infout.close();
-        //exit(-1);
-        
+
         // M step
         // optimizing betas
-        //cout<<"M step "<<iter<<endl;
+
         RANGE_loop(wn, word_occurrences_) {
         
             mapid & class_word_ldav_map_wn = class_word_ldav_map_.at(wn);
@@ -349,12 +332,10 @@ double word_corpus::run_em_sparse() {
             
             IT_loop(mapid, topic_pr, class_word_ldav_map_wn) {
                 if(topic_pr->second > 0) {
-                    //cout<<"topic "<<topic_pr->first<<" "<<topic_pr->second<<endl;
                     betas_ldav_wn[topic_pr->first] = log(topic_pr->second) \
                                                     - log(class_total_ldav_map_.at(topic_pr->first));
                 } else {
                     // this should never happen
-                    //betas_ldav_wn[topic_pr->first] = -100;
                     cerr<<"Small value in class_word_ldav_map_wn "<<topic_pr->second<<endl;
                     cerr<<"This is likely a bug! Please contact me: arg.lanci@gmail.com Thanks!"<<endl;
                     exit(-1);
@@ -362,21 +343,10 @@ double word_corpus::run_em_sparse() {
             }
         }
         
-        /* check betas is  normalized!!!!!!!!!!
-        mapid topic_norm;
-        RANGE_loop(wn, word_occurrences_) {
-            mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
-            IT_loop(mapid, topic_pr, betas_ldav_wn) {
-                int_histogram(topic_pr->first, topic_norm, exp(topic_pr->second));
-            }        
-        }
-        cout<<"________________"<<endl;
-        prints(topic_norm);
-        */
+        // optimizing alphas
         optimize_alpha_sparse(gammas_ldav);
 
         cout<<"log likelihood "<<likelihood_all<<endl;
-        // this is arbitrary
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
             break;
         if(iter>MAX_ITER)
