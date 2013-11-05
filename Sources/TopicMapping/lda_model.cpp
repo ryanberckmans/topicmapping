@@ -56,7 +56,6 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     
     cout<<"============== DIMENSIONS =============="<<endl;
     cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;    
-    cout<<"alphas_ldav_ "<<alphas_ldav_.size()<<endl;
     
     
     

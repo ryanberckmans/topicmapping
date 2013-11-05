@@ -1,35 +1,5 @@
 
 
-void dotpr_similarity_of_connected_words(int_matrix & corpus_matrix, map<pair<int, int> , int> & cooc) {
-	
-    cooc.clear();
-	RANGE_loop(i, corpus_matrix) {
-        
-        
-        if(i%1000==0){
-            cout<<"computing connected words:: "<<i<<endl;
-        }
-        
-        mapii hist;
-        DI ws;
-        RANGE_loop(j, corpus_matrix[i]) int_histogram(corpus_matrix[i][j], hist);        
-        IT_loop(mapii, itm, hist) ws.push_back(itm->first);
-        
-        RANGE_loop(j, ws) for(UI k=0; k<j; k++) {
-            
-            // I think this could be avoided
-            int w1=min(ws[j], ws[k]);
-            int w2=max(ws[j], ws[k]);
-            
-            if(w1!=w2) {
-                pair<int, int> pp(w1, w2);
-                if (cooc.find(pp)==cooc.end())
-                    cooc[pp]=0;
-                cooc[pp]+=hist[w1]*hist[w2];
-            }
-        }
-    }
-}
 
 
 void set_matrix_to_zero(int rows, int columns, deque<DD> & matrix) {

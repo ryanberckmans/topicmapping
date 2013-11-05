@@ -70,6 +70,10 @@ public:
     
 private:
     
+    
+    void dotpr_similarity_of_connected_words(map<pair<int, int> , int> & cooc);
+
+    
     void write_partition(mapii & hard_mems);
 
     void initial_ptopic(deque<mapid> & doc_topic, map<int, mapii> & word_topic, const mapii & hard_mems, const DI & doc_prevalent_topics);

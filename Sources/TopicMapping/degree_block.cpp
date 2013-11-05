@@ -108,7 +108,7 @@ public:
 	~degree_block(){};
 	
 	int qfive(int k1, int k2,double pvalue);
-	void random_similarities_poissonian_set_data(int_matrix & original_corpus);
+	void random_similarities_poissonian_set_data(DI & doc_sizes);
 	
 	
 private:
@@ -122,7 +122,7 @@ private:
 };
 
 
-void degree_block::random_similarities_poissonian_set_data(int_matrix & original_corpus) {
+void degree_block::random_similarities_poissonian_set_data(DI & doc_sizes) {
 	
 	/* 
 	 this function set a few things necessary for return_quantiles function.
@@ -139,14 +139,15 @@ void degree_block::random_similarities_poissonian_set_data(int_matrix & original
 	DI doc_sizes_poisson;
 	
 	int N=0;
-	RANGE_loop(i, original_corpus) {
-		N+=original_corpus[i].size();
-		doc_sizes_poisson.push_back(original_corpus[i].size());
+	RANGE_loop(i, doc_sizes) {
+		N+=doc_sizes[i];
+		doc_sizes_poisson.push_back(doc_sizes[i]);
 	}
 	double dN_poisson=N;
 	RANGE_loop(i, doc_sizes_poisson) {
 		pfact_poisson+= doc_sizes_poisson[i]*doc_sizes_poisson[i]/ (dN_poisson*dN_poisson);
 	}
+    cout<<"dN_poisson "<<dN_poisson<<" pfact_poisson "<<pfact_poisson<<endl;
 }
 
 
