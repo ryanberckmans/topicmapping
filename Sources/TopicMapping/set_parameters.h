@@ -1,9 +1,5 @@
 
 
-
-// TODO
-// some parameters disappeared- this needs some updates
-
 class parameters {
 	
 public:
@@ -211,9 +207,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
 		srand5(P.int_ps["-seed"]);
     
     general_assert(P.double_ps.at("-alpha")>0, "-alpha error:: alpha should be positive");
-    general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");
-
-    
+    general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");    
 
 }
 

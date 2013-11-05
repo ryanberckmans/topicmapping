@@ -4,9 +4,9 @@ typedef deque< pair<int, double> > did;
 typedef map<int, deque< pair<int, double> > > mapiid;
 typedef map<int, mapid> mapimapid;
 
-#include "degree_block.h"
-#include "utilities.h"
-#include "log_table.h"
+#include "degree_block.cpp"
+#include "utilities.cpp"
+#include "log_table.cpp"
 
 
 // TODO
