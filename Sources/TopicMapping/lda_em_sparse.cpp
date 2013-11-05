@@ -315,7 +315,7 @@ double word_corpus::run_em_sparse() {
         double likelihood_all=0.;
         cout<<"E step "<<iter<<endl;
         RANGE_loop(doc_number, docs_) {
-            if (doc_number%1000==0 & doc_number>0)
+            if (doc_number%1000==0 and doc_number>0)
                 cout<<"running lda E-step for doc "<<doc_number<<endl;
             double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
             likelihood_all+=likelihood_doc;
