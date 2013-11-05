@@ -3,7 +3,8 @@
 
 // global variables (really minor things)
 bool global_verbose=false;
-const string INFOMAP_PATH="/Users/andrealancichinetti/Desktop/work/2013/LDA_eval/topicmapping/bin/Infomap";
+//const string INFOMAP_PATH="/Users/andrealancichinetti/Desktop/work/2013/LDA_eval/topicmapping/bin/Infomap";
+const string INFOMAP_PATH="/home/staff/andrea/Desktop/ESA/esa_bangkok/TreatCorpusPhoenix/topicmapping/Sources/Infomap-0.11.5/Infomap";
 
 
 #include "../SingleSliceInfomap/infomap_single_function.cpp"
@@ -16,9 +17,10 @@ int main(int argc, char * argv[]) {
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
     
+    
     // setting corpus from file
     word_corpus C(P.double_ps.at("-minf"),
-                  P.double_ps.at("-maxf"),  
+                  P.double_ps.at("-maxf"),
                   P.double_ps.at("-p"), 
                   P.int_ps.at("-t"),  
                   P.string_ps.at("-part"), 
@@ -36,6 +38,7 @@ int main(int argc, char * argv[]) {
     
     
     double eff_ntopics=C.dimap(P.int_ps.at("-r"), \
+                               P.double_ps.at("-step"),
                                pt,doc_topic_best, \
                                topic_word_best,
                                doc_assignments);
@@ -48,7 +51,7 @@ int main(int argc, char * argv[]) {
     C.write_beta_and_theta_files(doc_topic_best, topic_word_best, "thetas.txt", "betas.txt");
     
     // optimizing LDA
-    C.lda_model(doc_topic_best, topic_word_best);
+    C.lda_model(doc_topic_best, topic_word_best, P.double_ps.at("-alpha"));
     
     
     

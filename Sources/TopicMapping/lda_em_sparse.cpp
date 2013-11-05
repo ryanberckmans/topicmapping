@@ -177,7 +177,7 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
                                                likelihood_alpha, likelihood_const);
         
         if(likelihood!=likelihood) {
-            cerr<<"error in likelihood:: "<<likelihood<<endl;
+            cerr<<"error in likelihood:: "<<likelihood<<" doc_number:: "<<doc_number<<endl;
             exit(-1);
         }
         converged = (likelihood_old - likelihood) / likelihood_old;

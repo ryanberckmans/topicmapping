@@ -58,13 +58,14 @@ public:
                                           string beta_file_short, \
                                           mapid & pt);
     double dimap(int Nruns, \
+                 double step,
                  mapid & pt, \
                  deque<mapid> & doc_topic_best, \
                  map<int, mapid> & topic_word_best, \
                  deque<mapii> & doc_assignments);
     
     double lda_model(deque<mapid> & doc_topic, 
-                     map<int, mapid> & topic_word);
+                     map<int, mapid> & topic_word, double alpha_init);
 
     
 private:
@@ -85,7 +86,8 @@ private:
                              mapid & pt_best, \
                              deque<mapid> & doc_topic_best, \
                              map<int, mapid> & topic_word_best, \
-                             deque<mapii> & doc_assignments_best, bool verbose);
+                             deque<mapii> & doc_assignments_best, \
+                             bool verbose, double step);
     
     
     
@@ -110,7 +112,8 @@ private:
     double run_em_sparse();
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
-    void initialize_lda_data(deque<mapid> & doc_topic, map<int, mapid> & topic_word);
+    void initialize_lda_data(deque<mapid> & doc_topic, 
+                             map<int, mapid> & topic_word, double alphas_init);
     void optimize_alpha(deque<DD> & gammas_ldav);
     void optimize_alpha_sparse(deque<DD> & gammas_ldav);
     

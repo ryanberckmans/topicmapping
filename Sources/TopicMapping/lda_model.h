@@ -10,12 +10,12 @@
 
 
 double word_corpus::lda_model(deque<mapid> & doc_topic, 
-                               map<int, mapid> & topic_word) {
+                               map<int, mapid> & topic_word, double alpha_init) {
 
     // doc_topic[doc] is p(t|doc)
     // topic_word[topic][word] is p(w|t)
     // getting all data structures ready
-    initialize_lda_data(doc_topic, topic_word);
+    initialize_lda_data(doc_topic, topic_word, alpha_init);
     
     // loop until convergence
     //run_em();

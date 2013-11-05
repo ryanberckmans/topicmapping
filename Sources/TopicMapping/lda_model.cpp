@@ -26,7 +26,7 @@ void word_corpus::set_class_words_to_zeros_map() {
 
 
 void word_corpus::initialize_lda_data(deque<mapid> & doc_topic, 
-                                      map<int, mapid> & topic_word) {
+                                      map<int, mapid> & topic_word, double alphas_init) {
     
     // this function is getting all data structure for lda topics ready
     // some asserts are also done and should be removed later
@@ -50,8 +50,8 @@ void word_corpus::initialize_lda_data(deque<mapid> & doc_topic,
     // and should be done
     // using doc_topic
     alphas_ldav_.clear();
-    // this should be a parameter !!!!!!!!!!!!!!!!!
-    alphas_ldav_.assign(num_topics_ldav_, 1.);
+    cout<<"alpha initialized with:: "<<alphas_init<<endl;
+    alphas_ldav_.assign(num_topics_ldav_, alphas_init);
     
     
     cout<<"============== DIMENSIONS =============="<<endl;

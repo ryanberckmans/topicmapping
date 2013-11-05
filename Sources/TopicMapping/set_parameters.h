@@ -89,8 +89,8 @@ void parameters::error_statement(char * argv[]) {
 	for(deque<pair<string, string> >::iterator itm=flag_statement.begin(); itm!=flag_statement.end(); itm++) {
 		cerr<<itm->first<<" "<<itm->second<<endl;
 	}
-    cerr<<"Example: "<<endl<<endl;
-    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -t 100 -p 0.05 -r 2"<<endl;
+    cerr<<"Basic example: "<<endl<<endl;
+    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed"<<endl;
     cerr<<"Please look at ReadMe.pdf for more info."<<endl;
 	exit(-1);
 }
@@ -187,17 +187,19 @@ void parameters::printing(ostream & pout) {
 }
 
 
+
 void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
         
     P.set_string("-f", "nofile", true, "[string]: name of the corpus file (plain txt file)");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
-    P.set_int("-r", 1, false, "[int]: number of runs for Infomap. Default is 1.");
+    P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
     P.set_int("-t", 0., false, "[int]: minimum number of documents per topic. Default is 0, but 10 is recommended for big corpuses.");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
     P.set_double("-maxf", 0.51, false, "[double] maximum value for the likelihood filter.");
+    P.set_double("-alpha", 0.01, false, "[double] initial value of alpha.");
+    P.set_double("-step", 0.01, false, "[double] step in PLSA filtering.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
-
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
@@ -207,7 +209,11 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
 		srand_file();
 	} else
 		srand5(P.int_ps["-seed"]);
+    
+    general_assert(P.double_ps.at("-alpha")>0, "-alpha error:: alpha should be positive");
+    general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");
 
+    
 
 }
 

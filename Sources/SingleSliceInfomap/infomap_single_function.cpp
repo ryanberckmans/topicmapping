@@ -149,7 +149,8 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
     string command_line = INFOMAP_PATH + option_file + string(num_trials_ch) + string(seed_ch) + option_log;
     
     // running the code
-    system(command_line.c_str());
+    int sy=system(command_line.c_str());
+    cout<<"Infomap's call returned:: "<<sy<<" "<<endl;
     
     // getting the partition    
     ifstream tree_in("tmp_net.tree");

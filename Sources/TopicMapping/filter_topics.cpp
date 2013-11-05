@@ -330,7 +330,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
                                       mapid & pt_best, \
                                       deque<mapid> & doc_topic_best, \
                                       map<int, mapid> & topic_word_best, \
-                                      deque<mapii> & doc_assignments_best, bool verbose) {
+                                      deque<mapii> & doc_assignments_best, bool verbose, double step) {
     
     
     // for each document, the topic which we believe
@@ -351,7 +351,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
     
     double eff_ntopics=0.;
     // step should be a parameter
-    for(double filtering_par=min_filter_; filtering_par<max_filter_+0.01; filtering_par+=0.01) {
+    for(double filtering_par=min_filter_; filtering_par<max_filter_+step; filtering_par+=step) {
         
         map<int, mapii> word_topic; // for each word, {topic:usage}
         deque<mapid> doc_topic;     // for each doc, {topic:probability}
@@ -398,6 +398,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
 
 
 double word_corpus::dimap(int Nruns, \
+                          double step,
                           mapid & pt, \
                           deque<mapid> & doc_topic_best, \
                           map<int, mapid> & topic_word_best, \
@@ -443,7 +444,8 @@ double word_corpus::dimap(int Nruns, \
     // max-likelihood filter
     double eff_ntopics=optimal_filtering(hard_memberships, 
                                          pt, doc_topic_best,
-                                         topic_word_best, doc_assignments, verbose);
+                                         topic_word_best, doc_assignments,
+                                         verbose, step);
     
     return eff_ntopics;
     
