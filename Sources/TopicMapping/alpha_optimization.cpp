@@ -139,32 +139,38 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     
 }
 
-
-void word_corpus::optimize_alpha_sparse(deque<DD> & gammas_ldav) {
+void word_corpus::compute_non_sparse_gammas(deque<DD> & gammas_ldav) {
+    
+    // copying gammas_ldav_map_ in gammas_ldav
+    // topics which are not gammas_ldav_map_ get just the prior (alphas_ldav_)
     
     gammas_ldav.clear();    
     
     DD void_dd_numtops;
     void_dd_numtops.assign(num_topics_ldav_, 0.);
-
+    
     // initializing gammas
     RANGE_loop(doc_number, docs_) {
         gammas_ldav.push_back(void_dd_numtops);
     }
-
+    
     RANGE_loop(doc_number, docs_) {
         IT_loop(mapid, itm, gammas_ldav_map_.at(doc_number)) {
-            //
             gammas_ldav[doc_number][itm->first]=itm->second;
-            //cout<<"doc_number "<<doc_number<<endl;
         }
         RANGE_loop(k, gammas_ldav[doc_number]) {
             gammas_ldav[doc_number][k]=max(gammas_ldav[doc_number][k], alphas_ldav_[k]);
         }
     }
+
+}
+
+
+void word_corpus::optimize_alpha_sparse() {
     
+    deque<DD> gammas_ldav;
+    compute_non_sparse_gammas(gammas_ldav);
     optimize_alpha(gammas_ldav);
-    
     
 }
 

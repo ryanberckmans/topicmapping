@@ -329,7 +329,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
                                       mapid & pt_best, \
                                       deque<mapid> & doc_topic_best, \
                                       map<int, mapid> & topic_word_best, \
-                                    bool verbose, double step) {
+                                      bool verbose, double step) {
     
     
     // for each document, the topic which we believe
@@ -361,10 +361,9 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
         word_topic= word_topic_initial;
         doc_topic= doc_topic_initial;
         
-        // filtering 
+        // filtering
         double loglikelihood=likelihood_filter(word_topic, doc_topic, topic_word, pt, hard_mems, filtering_par, doc_prevalent_topics);
         
-        //double aic= (docs_.size()+word_occurrences_.size())*(topic_word.size()-1) - loglikelihood;
         if(verbose) {
             cout<<"filtering: "<<filtering_par<<" loglikelihood: "<<loglikelihood<<" #topics: "<<topic_word.size()<<endl;
         }

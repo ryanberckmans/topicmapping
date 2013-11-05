@@ -126,3 +126,31 @@ double compute_eff_num_topics(const mapid & pt) {
     return pow(2,-1*h);
 }
 
+
+
+void read_topic_model_from_file(map<int, mapid> & topic_word, string filename) {
+
+    // getting topic_word from file similar to betas.txt
+
+    topic_word.clear();
+    ifstream gin(filename.c_str());
+    string gins;
+    int count_line=0;
+    while(getline(gin, gins)) {
+        DD vv;
+        cast_string_to_doubles(gins, vv);
+        mapid topic_word_mapid;
+        double check_sum=0.;
+        RANGE_loop(i, vv) {
+            topic_word_mapid[i]=exp(vv[i]);
+            check_sum+=topic_word_mapid[i];
+        }
+        if(fabs(check_sum-1)>1e-5) {
+            cerr<<"error in check_sum "<<check_sum-1<<endl; exit(-1);
+        }
+        topic_word[count_line]=topic_word_mapid;
+        count_line+=1;
+    }
+}
+
+

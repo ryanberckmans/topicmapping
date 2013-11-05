@@ -85,7 +85,8 @@ void parameters::error_statement(char * argv[]) {
 	for(deque<pair<string, string> >::iterator itm=flag_statement.begin(); itm!=flag_statement.end(); itm++) {
 		cerr<<itm->first<<" "<<itm->second<<endl;
 	}
-    cerr<<"Basic example: "<<endl<<endl;
+    
+    cerr<<endl<<"Basic example: "<<endl;
     cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed"<<endl;
     cerr<<"Please look at ReadMe.pdf for more info."<<endl;
 	exit(-1);
@@ -196,10 +197,12 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_double("-step", 0.01, false, "[double] step in PLSA filtering.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
+    P.set_bool("-skip_opt_al", false, false, " : use this option to skip alpha optimization");
+    P.set_string("-model", "", false, "[string]: a file like \"betas.txt\" saved from a previous run");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
-	
+
 	if(P.int_ps["-seed"]==-1) {
 		cout<<"setting random number seed from file"<<endl;
 		srand_file();

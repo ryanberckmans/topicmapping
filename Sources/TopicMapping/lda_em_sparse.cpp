@@ -1,8 +1,7 @@
 
 # define LIK_precision 1e-5
 # define MAX_ITER 1000
-// exp(-14) ~ 1e-6
-# define DIGAMMA_precision -14.
+# define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
 # define VARGAMMA_precision 1e-6
 # define SMALL_LOG -100
 
@@ -52,14 +51,8 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         topics used by the document
     */
     
-    // 
     
-    /*
-    RANGE_loop(wn, betas_ldav_map_) {
-        cout<<">>> wn "<<wn<<endl;
-        prints(betas_ldav_map_[wn]);        
-    }*/
-    
+        
     
     bool verbose=false;
     
@@ -75,7 +68,6 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
         // uniform
         topic_pr->second = (alphas_ldav_[topic_pr->first] + double(docs_[doc_number].num_words_)/num_topics_ldav_);
         digamma_gam[topic_pr->first]=digamma(topic_pr->second);
-        // phi[word][topic]
     }
     
     if(verbose) {
@@ -84,16 +76,15 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     }
     
     IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {            
-        // clearing the map phis_ldav_map_[wn]
-        // phis_ldav_map_ must always be used 
-        // as phis_ldav_map_wn with loop over this doc
+        // clearing the map phis_ldav_map_[wn] only
+        // !!! phis_ldav_map_ MUST always be used
+        // !!! as phis_ldav_map_wn with wn over this doc
         phis_ldav_map_.at(wn_occ->first).clear();
         deqid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];
         
         // consider only the common topic between var_gamma and betas
         //double topics_for_this_word = double(betas_ldav_map_.at(wn_occ->first).size());
         IT_loop(mapid, topic_pr, var_gamma) if(betas_ldav_map_.at(wn_occ->first).count(topic_pr->first)>0) {
-            //phis_ldav_map_wn[topic_pr->first] = 1.0/num_topics_ldav_;
             phis_ldav_map_wn.push_back(make_pair(topic_pr->first, 1.0/num_topics_ldav_));
             
         }
@@ -138,8 +129,8 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
                 }
             }
             
-            // the first time, we update on this word I need to remove the prior
-            // from all topics
+            // the first time we update on this word,
+            // I need to remove the prior from all topics
             if(var_iter==1) {
                 IT_loop(mapid, topic_pr, var_gamma) {
                     topic_pr->second -= double(wn_occ->second) /num_topics_ldav_;
@@ -319,14 +310,13 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     
 }
 
-double word_corpus::run_em_sparse() {
+double word_corpus::run_em_sparse(bool skip_alpha_opt) {
     
     cout<<"running EM"<<endl;    
     
     ofstream likout("log_likelihood_per_doc.txt");    
     double likelihood_old=-1e300;
     // this are the varaiational parameters which are the main output of the program
-    deque<DD> gammas_ldav;
     
     int iter=0;
     while(true) {
@@ -335,7 +325,7 @@ double word_corpus::run_em_sparse() {
         // E step
         cout<<"E step "<<iter<<endl;
         double likelihood_all=E_step(likout, false);
-        
+
         // M step
         // optimizing betas
         RANGE_loop(wn, word_occurrences_) {
@@ -356,8 +346,10 @@ double word_corpus::run_em_sparse() {
             }
         }
         // optimizing alphas
-        optimize_alpha_sparse(gammas_ldav);
-
+        if (skip_alpha_opt==false) {
+            optimize_alpha_sparse();
+        }
+        
         cout<<"log likelihood "<<likelihood_all<<endl;
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
             break;
@@ -366,8 +358,9 @@ double word_corpus::run_em_sparse() {
         likelihood_old=likelihood_all;
     }
     cout<<"final E step"<<endl;
-    E_step(likout, true);
-    optimize_alpha_sparse(gammas_ldav);
+    double likelihood_all = E_step(likout, true);
+    deque<DD> gammas_ldav;
+    compute_non_sparse_gammas(gammas_ldav);
     cout<<"log likelihood "<<likelihood_all<<endl;
 
 

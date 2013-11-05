@@ -28,7 +28,7 @@ void word_corpus::set_class_words_to_zeros_map() {
 void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alphas_init) {
     
     // this function is getting all data structure for lda topics ready
-    // some asserts are also done and should be removed later
+    // some asserts are also done
     
     
     // asserting everything is starting from zero and being consecutive
@@ -49,13 +49,10 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
     alphas_ldav_.clear();
     cout<<"alpha initialized with:: "<<alphas_init<<endl;
     alphas_ldav_.assign(num_topics_ldav_, alphas_init);
-    
-    
-    cout<<"============== DIMENSIONS =============="<<endl;
-    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;    
-    
-    
-    
+
+
+    cout<<"number of topics for LDA:: "<<num_topics_ldav_<<endl;    
+        
     // =============== sparse data structure initialization ======================= //
     
     phis_ldav_map_.clear();
@@ -75,16 +72,13 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
         class_word_ldav_map_.push_back(void_mapid);
     }
     
-    
     // copying topic_word in betas_ldav_
-    // this should be avoided and pass betas_ldav_ directly
-    // to the lda model
-    // ========= this is basically topic word but written  in a 
-    // different format
-    // make sure it's sparse!!!!!!!!!!!!!!!!
-    // make also sure that it's normalized
-    // sum_wn exp(betas_ldav_map_[wn][whatever_topic]) =1
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // this is basically topic word
+    // but stored as [wn][topic]
+    // rather than [topic][wn]
+    // also I take log
+    // and I remove words below SPARSE_limit
+    // (which should be none actually)
     
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {
@@ -98,18 +92,23 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
         }
     }
 
-    /*
-    cout<<"check normalization"<<endl;
+    
+    
+    // ========== check betas is normalized ===============
+    cout<<"check betas normalization"<<endl;
     mapid topic_norm;
     RANGE_loop(wn, word_occurrences_) {
         mapid & betas_ldav_wn = betas_ldav_map_.at(wn);
         IT_loop(mapid, topic_pr, betas_ldav_wn) {
             int_histogram(topic_pr->first, topic_norm, exp(topic_pr->second));
-        }        
+        }
     }
-    cout<<"________________"<<endl;
-    prints(topic_norm);
-    */
+    IT_loop(mapid, itm, topic_norm) {
+        assert_floats(itm->second, 1., \
+                      "error in betas normalization", 1e-5);
+    }
+    // ========== check betas is normalized ===============
+    
     
     set_class_words_to_zeros_map();
     

@@ -9,14 +9,14 @@
 
 
 
-double word_corpus::lda_model(map<int, mapid> & topic_word, double alpha_init) {
+double word_corpus::lda_model(map<int, mapid> & topic_word, double alpha_init, bool skip_alpha_opt) {
 
     // topic_word[topic][word] is p(w|t)
     // getting all data structures ready
     initialize_lda_data(topic_word, alpha_init);
     
     // loop until convergence
-    run_em_sparse();
+    run_em_sparse(skip_alpha_opt);
     
     return 0.;
 
