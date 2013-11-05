@@ -4,8 +4,6 @@
 // global variables (really minor things)
 bool global_verbose=false;
 const string INFOMAP_PATH="/Users/andrealancichinetti/Desktop/work/2013/LDA_eval/topicmapping/bin/Infomap";
-//const string INFOMAP_PATH="/home/staff/andrea/Desktop/ESA/esa_bangkok/TreatCorpusPhoenix/topicmapping/Sources/Infomap-0.11.5/Infomap";
-
 
 #include "../SingleSliceInfomap/infomap_single_function.cpp"
 #include "word_corpus.h"
