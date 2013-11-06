@@ -172,6 +172,19 @@ void prints(const deque<type> & sq) {
 		
 }
 
+
+
+void prints_deqii(const deque<pair<int, int> > & sq) {
+	
+	for(UI i=0; i<sq.size(); i++)
+		cout<<sq[i].first<<" "<<sq[i].second<<endl;
+	cout<<endl;
+	
+    
+}
+
+
+
 template <typename type>
 void prints(const vector<type> & sq) {
 	

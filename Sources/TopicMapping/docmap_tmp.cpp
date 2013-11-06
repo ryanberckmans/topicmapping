@@ -78,7 +78,6 @@ int main(int argc, char * argv[]) {
         read_topic_model_from_file(topic_word, P.string_ps.at("-model"));
     }
     
-    
     // optimizing LDA
     C.lda_model(topic_word,
                 P.double_ps.at("-alpha"), \

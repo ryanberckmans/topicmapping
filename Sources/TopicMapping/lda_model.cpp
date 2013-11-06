@@ -22,9 +22,6 @@ void word_corpus::set_class_words_to_zeros_map() {
 }
 
 
-
-
-
 void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alphas_init) {
     
     // this function is getting all data structure for lda topics ready
@@ -126,13 +123,6 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
             }
         }
     }
-    
-    
-    
-
-    
-    
-    
     
 }
 

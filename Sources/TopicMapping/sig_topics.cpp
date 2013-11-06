@@ -26,14 +26,11 @@ void word_corpus::dotpr_similarity_of_connected_words(map<pair<int, int> , int> 
 
 
 
-
-
 void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int> , int> & cooc, \
-                                                               int par_a, \
-                                                               int par_b, int max_ab) {
+                                                               int par_a, int par_b, int max_ab) {
     
     // this is to compute the network using multiple cpus.
-    /*
+    
     cooc.clear();
 	RANGE_loop(doc_number, docs_) {
         
@@ -43,28 +40,46 @@ void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int
         deqii & wn_occs_doc_orig= docs_[doc_number].wn_occs_;
         
         // only considering words in par_a and par_b
-        DI first_part;
-        IT_loop(deqii, itm, wn_occs_doc_orig) if(itm->first%max_a==par_a)
-            first_part.push_back(itm->first);
-        DI second_part;
-        IT_loop(deqii, itm, wn_occs_doc_orig) if(itm->first%max_b==par_b)
-            second_part.push_back(itm->first);
+        deqii first_part;
+        IT_loop(deqii, itm, wn_occs_doc_orig) if(itm->first%max_ab==par_a)
+            first_part.push_back(*itm);
+        deqii second_part;
+        IT_loop(deqii, itm, wn_occs_doc_orig) if(itm->first%max_ab==par_b)
+            second_part.push_back(*itm);
         
-        // sort out what to do for the order!
-        // loop over all pairs of documents
-        ////////////////////////////////
-        // this is to be finished
-        RANGE_loop(j, partial_wn_occ) for(UI k=j+1; k<partial_wn_occ.size(); k++) {
-            
-            //general_assert(partial_wn_occ[j].first < partial_wn_occ[k].first, "error in word order");
-            pair<int, int> pp(partial_wn_occ[j].first, partial_wn_occ[k].first);
-            int value= partial_wn_occ[j].second * partial_wn_occ[k].second;
-            pair<map<pair<int, int> , int>::iterator, bool> ret = cooc.insert(make_pair(pp, value));
-            if(ret.second==false)
-                ret.first->second+=value;
+        ///cout<<"---------------------"<<endl;
+        ///prints_deqii(first_part);
+        ///prints_deqii(second_part);
+        //cout<<"---------------------"<<endl;
+        
+        // both first_part and second_part are sorted
+        // if you are in first_part[j]
+        // you only need to move from k 
+        // such that second_part[k] > first_part[i]
+        
+        // this is the index in second_part from which we left
+        UI k_zero=0;
+        RANGE_loop(j, first_part) {
+            int & first_word=first_part[j].first;
+            // getting the right k_zero
+            while(k_zero<second_part.size() and first_word >= second_part[k_zero].first) {
+                ++k_zero;
+            }
+            ///cout<<"k_zero "<<k_zero<<endl;
+            ///cout<<"first_word "<<first_word<<endl;
+            // now we are sure that second_part[k_zero]>first_part[j]
+            // then also second_part[k_zero+something] is > first_part[j]
+            for(UI k=k_zero; k<second_part.size(); k++) {
+                ///cout<<"second_word "<< second_part[k].first<<" K: "<<k<<endl;
+                general_assert(first_word < second_part[k].first, "error in word order");
+                pair<int, int> pp(first_word, second_part[k].first);
+                int value= first_part[j].second * second_part[k].second;
+                pair<map<pair<int, int> , int>::iterator, bool> ret = cooc.insert(make_pair(pp, value));
+                if(ret.second==false)
+                    ret.first->second+=value;
+            }            
         }
     }
-     */
 }
 
 
@@ -133,9 +148,10 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
     if(print_sig_words or max_ab>1) {
         char outfile[200];
         if(max_ab>1) {
-            sprintf(outfile, "sig_words_%d_%d_%d.edges.txt", par_a, par_b, max_ab);
+            sprintf(outfile, "sig_words_%d_%d_%d.edges", par_a, par_b, max_ab);
+            cout<<"writing to file: "<<outfile<<endl;
         } else {  
-            sprintf(outfile, "sig_words.edges.txt");
+            sprintf(outfile, "sig_words.edges");
         }
         ofstream sigout(outfile);
         RANGE_loop(i, links1)
@@ -159,10 +175,11 @@ void word_corpus::null_model(string parall_str) {
     int parall_i=param_parall[0];
     int parall_j=param_parall[1];
     int parall_n=param_parall[2];
-    general_assert(parall_i>0 and parall_i<parall_n, "i out of range respect to n");
-    general_assert(parall_j>0 and parall_j<parall_n, "j out of range respect to n");
-
+    
     cout<<"running null model. Parallel parameters: "<<parall_i<<" "<<parall_j<<" "<<parall_n<<endl;
+    general_assert(parall_i>=0 and parall_i<parall_n, "i out of range respect to n");
+    general_assert(parall_j>=0 and parall_j<parall_n, "j out of range respect to n");
+
     DI links1;
     DI links2;
     DD weights;

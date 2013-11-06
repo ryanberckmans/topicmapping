@@ -142,7 +142,6 @@ private:
     // lda data structures
     // (add explanation here)
     
-    
     /* this are for the non-sparse implementation 
         and are not in use anymore
     deque<DD> phis_ldav_;

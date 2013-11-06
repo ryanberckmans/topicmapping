@@ -202,7 +202,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_string("-model", "", false, "[string]: a file like \"betas.txt\" saved from a previous run");
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
     P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas -No alpha optimization is involved. As -alpha is just a scalar, this is symmetric LDA-");
-    P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be between 0 and n.");
+    P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
@@ -217,7 +217,17 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");
     general_assert(P.string_ps.at("-parall").size()==0 or P.string_ps.at("-part").size()==0, \
                    "error: you cannot set -parall and -part together");
-                   
+    
+    
+    /*
+    if (P.bool_ps.at("-infer")) {
+        // if program is in infer mode, you need to specify -alpha
+        // or better, -alpha_file 
+        if(P.string_ps.at("-alpha_file").size()==0) {
+            cout<<"Warning: you are running -infer without providing alphas from file. Current alpha is: ";
+            cout<<P.double_ps.at("-alpha")<<endl;;
+        }
+    }*/
     
 
 

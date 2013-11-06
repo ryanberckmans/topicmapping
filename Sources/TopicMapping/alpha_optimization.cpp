@@ -24,15 +24,12 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     deque<DD> ps;
     
     DD sum_gamma_over_topics;
-    // sum_gamma_over_topics[i] = digamma(sum_k) 
     sum_gamma_over_topics.assign(gammas_ldav.size(), 0.);
-    // assert that sum_gamma_over_topics is simply
-    // the digamma(number of words + sum of priors)
     
     RANGE_loop(i, gammas_ldav) {
         ps.push_back(gammas_ldav[i]);
         double sum_=normalize_one(ps[i]);
-        // this assert is true but thre might be round-off problems
+        // this assert is true but there might be round-off problems
         //assert_floats((docs_[i].num_words_+sum_alphas)/sum_, 1., "error in gamma terms");
         sum_gamma_over_topics[i]=digamma(sum_);
     }

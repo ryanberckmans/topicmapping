@@ -404,7 +404,6 @@ double word_corpus::dimap(int Nruns, \
     
     doc_topic_best.clear();
     topic_word_best.clear();
-    //doc_assignments.clear();
     pt.clear();
     
     bool verbose=true;
