@@ -186,7 +186,8 @@ void parameters::printing(ostream & pout) {
 
 
 void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
-        
+
+
     P.set_string("-f", "nofile", true, "[string]: name of the corpus file (plain txt file)");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
     P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
@@ -199,18 +200,26 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
     P.set_bool("-skip_opt_al", false, false, " : use this option to skip alpha optimization");
     P.set_string("-model", "", false, "[string]: a file like \"betas.txt\" saved from a previous run");
+    P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
+    P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas -No alpha optimization is involved. As -alpha is just a scalar, this is symmetric LDA-");
+    P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be between 0 and n.");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
 
-	if(P.int_ps["-seed"]==-1) {
+	if(P.int_ps.at("-seed")==-1) {
 		cout<<"setting random number seed from file"<<endl;
 		srand_file();
 	} else
 		srand5(P.int_ps["-seed"]);
     
     general_assert(P.double_ps.at("-alpha")>0, "-alpha error:: alpha should be positive");
-    general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");    
+    general_assert(P.double_ps.at("-step")>0, "-step error:: step should be positive");
+    general_assert(P.string_ps.at("-parall").size()==0 or P.string_ps.at("-part").size()==0, \
+                   "error: you cannot set -parall and -part together");
+                   
+    
+
 
 }
 

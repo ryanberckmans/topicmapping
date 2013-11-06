@@ -310,7 +310,7 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     
 }
 
-double word_corpus::run_em_sparse(bool skip_alpha_opt) {
+double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag) {
     
     cout<<"running EM"<<endl;    
     
@@ -319,7 +319,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt) {
     // this are the varaiational parameters which are the main output of the program
     
     int iter=0;
-    while(true) {
+    while(infer_flag==false) {
         
         ++iter;
         // E step

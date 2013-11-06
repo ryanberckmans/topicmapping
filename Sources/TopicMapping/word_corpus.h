@@ -9,10 +9,6 @@ typedef map<int, mapid> mapimapid;
 #include "log_table.cpp"
 
 
-// TODO
-// in class doc, wn_occurences_ is not efficient
-
-
 class doc {
 
 public:
@@ -26,9 +22,6 @@ public:
 	deqii wn_occs_;         // word-number - occurences
     
 };
-
-
-
 
 
 class word_corpus {
@@ -45,10 +38,8 @@ public:
 	void set_from_file(string filename);
 	void write_corpus_file();
 
-    // computing the network 
-	void null_model(DI & links1, DI & links2, DD & weights);
-    
-    
+    // computing the network
+    void null_model(string parall_str);
     void write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
                                     string theta_file, string beta_file);
     void write_short_beta_and_theta_files(deque<mapid> & doc_topic,\
@@ -59,30 +50,43 @@ public:
                                           mapid & pt);
     double dimap(int Nruns, \
                  double step,
+                 bool print_sig_words,
                  mapid & pt, \
                  deque<mapid> & doc_topic_best, \
                  map<int, mapid> & topic_word_best);
     
-    double lda_model(map<int, mapid> & topic_word, double alpha_init, bool skip_alpha_opt);
+    double lda_model(map<int, mapid> & topic_word, double alpha_init,\
+                     bool skip_alpha_opt, bool infer_flag);
 
     
 private:
     
     
-    void dotpr_similarity_of_connected_words(map<pair<int, int> , int> & cooc);
+    // ======================= member private methods ======================
 
     
+    // null model
+    void dotpr_similarity_of_connected_words(map<pair<int, int> , int> & cooc);
+    void dotpr_similarity_of_connected_words_parallel(map<pair<int, int> , int> & cooc, \
+                                                      int par_a, int par_b, int max_ab);
+    void null_model(DI & links1, DI & links2, DD & weights, \
+                    int par_a, int par_b, int max_ab, bool print_sig_words);
+        
+    // likelihood filtering
     void write_partition(mapii & hard_mems);
-
-    void initial_ptopic(deque<mapid> & doc_topic, map<int, mapii> & word_topic, const mapii & hard_mems, const DI & doc_prevalent_topics);
-    void get_betas(map<int, mapii> & word_topic, map<int, mapid> & topic_word, mapid & pt);
-    double compute_likelihood(map<int, mapid> & topic_word, map<int, mapii> & word_topic, deque<mapid> & doc_topic);
+    void initial_ptopic(deque<mapid> & doc_topic, \
+                        map<int, mapii> & word_topic, \
+                        const mapii & hard_mems, \
+                        const DI & doc_prevalent_topics);
+    void get_betas(map<int, mapii> & word_topic, \
+                   map<int, mapid> & topic_word, mapid & pt);
+    double compute_likelihood(map<int, mapid> & topic_word, \
+                              map<int, mapii> & word_topic, deque<mapid> & doc_topic);
     double likelihood_filter(map<int, mapii> & word_topic, deque<mapid> & doc_topic, \
                              map<int, mapid> & topic_word, mapid & pt, \
                              const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics);
     void get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics);
     void get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems);
-
     double optimal_filtering(mapii & hard_mems, \
                              mapid & pt_best, \
                              deque<mapid> & doc_topic_best, \
@@ -90,27 +94,12 @@ private:
                              bool verbose, double step);
     
     
-    
-    // basic data structures
-    deque<string> word_strings_;		// word_strings_[wn] = "word_in_text"	
-	DI word_occurrences_;            // word_occurrences_[wn] = occurences
-	deque<doc> docs_;                // documents
-    
-    
-    // parameters
-    double max_filter_;
-    double min_filter_;;
-    double p_value_;
-    int min_docs_;;
-    string partition_file_;
-
-    
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
     double E_step(ostream & likout, bool verbose);
     double run_em();
-    double run_em_sparse(bool skip_alpha_opt);
+    double run_em_sparse(bool skip_alpha_opt, bool infer_flag);
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
     void initialize_lda_data(map<int, mapid> & topic_word, double alphas_init);
@@ -130,6 +119,24 @@ private:
                                                const double & sum_alphas);
     double compute_likelihood_alpha_terms(double & sum_alphas);
     double lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha);
+    
+    
+    
+    
+    // ======================= member variables ======================
+    
+    // basic data structures
+    deque<string> word_strings_;	// word_strings_[wn] = "word_in_text"	
+	DI word_occurrences_;            // word_occurrences_[wn] = occurences
+	deque<doc> docs_;                // documents
+    
+    
+    // parameters
+    double max_filter_;
+    double min_filter_;;
+    double p_value_;
+    int min_docs_;;
+    string partition_file_;
 
     
     // lda data structures

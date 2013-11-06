@@ -397,6 +397,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
 
 double word_corpus::dimap(int Nruns, \
                           double step,
+                          bool print_sig_words,
                           mapid & pt, \
                           deque<mapid> & doc_topic_best, \
                           map<int, mapid> & topic_word_best) {
@@ -414,8 +415,8 @@ double word_corpus::dimap(int Nruns, \
         DI links1;
         DI links2;
         DD weights;
-        // running null model
-        null_model(links1, links2, weights);
+        // running null model (without parallelization going on)
+        null_model(links1, links2, weights, 0, 0, 1, print_sig_words);
         
         // collecting infomap initial partition
         if(links1.size()==0) {

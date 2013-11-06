@@ -25,74 +25,15 @@ void word_corpus::dotpr_similarity_of_connected_words(map<pair<int, int> , int> 
 }
 
 
-void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
-	
-    
-    bool verbose=true;
-    
-	if(verbose) cout<<"null model. p-value: "<<p_value_<<endl;
-    
-    DI doc_sizes;
-	RANGE_loop(i, docs_) {
-        doc_sizes.push_back(docs_[i].num_words_);
-	}
-    
-    // initialize with doc_sizes
-	degree_block DB;
-	DB.random_similarities_poissonian_set_data(doc_sizes);
-
-	map<pair<int, int> , int> cooc;
-    // co-occurrences matrix
-	dotpr_similarity_of_connected_words(cooc);
-    
-	int qfive_links=0;
-	int total_possible_links=0;	
-    links1.clear(); links2.clear(); weights.clear();
-    
-    // computing the significant links
-    cout<<"pair to evaluate for significance:: "<<cooc.size()<<endl;
-	for(map<pair<int, int> , int>::iterator it=cooc.begin(); it!=cooc.end(); it++) {
-		
-		++total_possible_links;
-        if(total_possible_links%100000==0) {
-            cout<<"pairs done: "<<total_possible_links<<endl;
-        }
-		
-		int k1=min(word_occurrences_[it->first.first], word_occurrences_[it->first.second]);
-		int k2=max(word_occurrences_[it->first.first], word_occurrences_[it->first.second]);
-		int qfive=DB.qfive(k1,k2,p_value_);
-        
-        // significant links
-        if(it->second - qfive>0) {
-            
-            links1.push_back(it->first.first);
-            links2.push_back(it->first.second);
-            weights.push_back(double(it->second- qfive));            
-            ++qfive_links;
-		}
-	}
-    
-	if(verbose) {
-        cout<<"p-value: "<<p_value_<<" significant link fraction: "<<double(qfive_links)/total_possible_links<<endl;
-        cout<<"total possible links "<<total_possible_links<<endl;
-    }
-
-}
 
 
-
-/*
-
-//THIS IS WORKING CODE
-// a couple of function to compute the network using multiple
-// cpus.
 
 void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int> , int> & cooc, \
                                                                int par_a, \
-                                                               int par_b, \
-                                                               int max_a, int max_b) {
+                                                               int par_b, int max_ab) {
     
-    // 
+    // this is to compute the network using multiple cpus.
+    /*
     cooc.clear();
 	RANGE_loop(doc_number, docs_) {
         
@@ -123,17 +64,18 @@ void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int
                 ret.first->second+=value;
         }
     }
+     */
 }
 
 
-void word_corpus::null_model_parallel(DI & links1, DI & links2, DD & weights,\
-                                      int par_a, int par_b, 
-                                      int max_a, int max_b) {
+
+void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
+                             int par_a, int par_b, int max_ab, bool print_sig_words) {
 	
-    // same function as null_model
-    // but it works only for 
-    // wn%par_a and wn%par_b
     
+    //  this is the general function
+    //  for computing the word graph
+     
     bool verbose=true;
     
 	if(verbose) cout<<"null model. p-value: "<<p_value_<<endl;
@@ -146,23 +88,26 @@ void word_corpus::null_model_parallel(DI & links1, DI & links2, DD & weights,\
     // initialize with doc_sizes
 	degree_block DB;
 	DB.random_similarities_poissonian_set_data(doc_sizes);
-    
+
 	map<pair<int, int> , int> cooc;
-	map<pair<int, int> , int> cooc_nullterm;
     // co-occurrences matrix
-	dotpr_similarity_of_connected_words(cooc, par_a, par_b, max_a, max_b);
+    if(max_ab==1) {
+        dotpr_similarity_of_connected_words(cooc);
+    } else {
+        dotpr_similarity_of_connected_words_parallel(cooc, par_a, par_b, max_ab);        
+    }
     
 	int qfive_links=0;
 	int total_possible_links=0;	
     links1.clear(); links2.clear(); weights.clear();
     
     // computing the significant links
-    cout<<"pair to evaluate for significance:: "<<cooc.size()<<endl;
+    if(verbose) cout<<"pair to evaluate for significance:: "<<cooc.size()<<endl;
 	for(map<pair<int, int> , int>::iterator it=cooc.begin(); it!=cooc.end(); it++) {
 		
 		++total_possible_links;
-        if(total_possible_links%100000==0) {
-            cout<<"pairs done: "<<total_possible_links<<endl;
+        if(verbose and total_possible_links%1000000==0) {
+            cout<<"pairs done: "<<double(total_possible_links)/cooc.size()<<endl;
         }
 		
 		int k1=min(word_occurrences_[it->first.first], word_occurrences_[it->first.second]);
@@ -170,31 +115,61 @@ void word_corpus::null_model_parallel(DI & links1, DI & links2, DD & weights,\
 		int qfive=DB.qfive(k1,k2,p_value_);
         
         // significant links
-        if(it->second- qfive>0) {
-            
+        if(it->second - qfive>0) {
             links1.push_back(it->first.first);
             links2.push_back(it->first.second);
-            weights.push_back(double(it->second- qfive));
-            
+            weights.push_back(double(it->second- qfive));            
             ++qfive_links;
-            cooc_nullterm.insert(make_pair(it->first, qfive));
 		}
 	}
     
 	if(verbose) {
-        cout<<"p-value: "<<p_value_<<" significant link fraction: "<<double(qfive_links)/total_possible_links<<endl;
+        cout<<"p-value: "<<p_value_<<" significant link fraction: ";
+        cout<<double(qfive_links)/total_possible_links<<endl;
         cout<<"total possible links "<<total_possible_links<<endl;
     }
     
+    // if max_ab>1, this is always true
+    if(print_sig_words or max_ab>1) {
+        char outfile[200];
+        if(max_ab>1) {
+            sprintf(outfile, "sig_words_%d_%d_%d.edges.txt", par_a, par_b, max_ab);
+        } else {  
+            sprintf(outfile, "sig_words.edges.txt");
+        }
+        ofstream sigout(outfile);
+        RANGE_loop(i, links1)
+            sigout<<links1[i]<<" "<<links2[i]<<" "<<weights[i]<<endl;
+    }
+
+}
+
+
+
+
+
+void word_corpus::null_model(string parall_str) {
     
-    char outfile[100];
-    sprintf(outfile, "sig_links_%d_%d.txt", par_a, par_b);
+    // public interface for parallelization
+
+    // parsing string
+    DI param_parall;
+    cast_string_to_doubles(parall_str, param_parall);
+    assert_ints(param_parall.size(), 3, "-parall should be followed by i:j:n");
+    int parall_i=param_parall[0];
+    int parall_j=param_parall[1];
+    int parall_n=param_parall[2];
+    general_assert(parall_i>0 and parall_i<parall_n, "i out of range respect to n");
+    general_assert(parall_j>0 and parall_j<parall_n, "j out of range respect to n");
+
+    cout<<"running null model. Parallel parameters: "<<parall_i<<" "<<parall_j<<" "<<parall_n<<endl;
+    DI links1;
+    DI links2;
+    DD weights;
     
+    // default is no parallelization 
+    null_model(links1, links2, weights, parall_i, parall_j, parall_n, true);
     
     
 }
-
-*/
-
-
 

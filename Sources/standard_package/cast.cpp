@@ -18,7 +18,7 @@ string str_cast(int number) {
 
 
 
-bool cast_string_to_double (string b, double &h) {		
+bool cast_string_to_double(string b, double &h) {		
 
 // set h= the number written in b[]; 
 // return false if there is an error
@@ -280,6 +280,8 @@ bool separate_strings(string &b, deque<string> & v) {
 	
 	return true;
 }
+
+
 
 
 double approx(double a, int digits) {
