@@ -1,4 +1,6 @@
 
+
+
 void word_corpus::dotpr_similarity_of_connected_words(map<pair<int, int> , int> & cooc) {
 
     cooc.clear();
@@ -40,7 +42,6 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
 	DB.random_similarities_poissonian_set_data(doc_sizes);
 
 	map<pair<int, int> , int> cooc;
-	map<pair<int, int> , int> cooc_nullterm;
     // co-occurrences matrix
 	dotpr_similarity_of_connected_words(cooc);
     
@@ -66,10 +67,8 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
             
             links1.push_back(it->first.first);
             links2.push_back(it->first.second);
-            weights.push_back(double(it->second- qfive));
-            
+            weights.push_back(double(it->second- qfive));            
             ++qfive_links;
-            cooc_nullterm.insert(make_pair(it->first, qfive));
 		}
 	}
     
@@ -84,7 +83,9 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights) {
 
 /*
 
-
+//THIS IS WORKING CODE
+// a couple of function to compute the network using multiple
+// cpus.
 
 void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int> , int> & cooc, \
                                                                int par_a, \
@@ -111,6 +112,7 @@ void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int
         // sort out what to do for the order!
         // loop over all pairs of documents
         ////////////////////////////////
+        // this is to be finished
         RANGE_loop(j, partial_wn_occ) for(UI k=j+1; k<partial_wn_occ.size(); k++) {
             
             //general_assert(partial_wn_occ[j].first < partial_wn_occ[k].first, "error in word order");
