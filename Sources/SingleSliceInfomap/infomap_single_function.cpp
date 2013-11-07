@@ -56,15 +56,15 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             deque<int> links1, deque<int> links2,
                                             const deque<double> & weights,
                                             mapii & hard_memberships, bool verbose) {
-    / *
-     same function as below
-     but the input is the edge list
-     links1, links2, weights
-     links1 and link2 can start from 
-     whatever number
-     links1 and link2 are reset, 
-     that's why we pass them by value
-     * /
+    //
+    // same function as below
+    // but the input is the edge list
+    // links1, links2, weights
+    // links1 and link2 can start from 
+    // whatever number
+    // links1 and link2 are reset, 
+    // that's why we pass them by value
+    // 
     
     hard_memberships.clear();
 
@@ -172,129 +172,110 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
 }
 */
 
-        
+
+
+
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             const deque<int> & links1, const deque<int> & links2,
                                             const deque<double> & weights,
                                             mapii & hard_memberships, bool verbose) {
-    /*
-     same function as below
-     but the input is the edge list
-     links1, links2, weights
-     links1 and link2 can start from 
-     whatever number
-     but there should not be multiple entries
-     == NO CHECK IS DONE, though ==
-     */
+
+
+    //
+    // same function as below
+    // but the input is the edge list
+    // links1, links2, weights
+    // links1 and link2 can start from 
+    //
     
     hard_memberships.clear();
     
-    if (links1.size()!=links2.size() or weights.size()!=links1.size()) {
-        cerr<<"sizes do not match in get_infomap_partition"<<endl;
-        exit(-1);
-    }
+    // old id -> new id
+    mapii labels;
+    //new id -> old id
+    DI new_labels;
+    // {(node1, node2):weight}
+    map<pair<int, int>, double> edges;
     
-    if(links1.size()==0) {
-        return 0.;
-    }
-    
-    
-    // relabelling 
-    mapii old_labels_new_labels;
-    
-    RANGE_loop(i, links1) {
-        int n1= links1[i];
-        int n2= links2[i];
-        if(old_labels_new_labels.count(n1)==0) {
-            old_labels_new_labels.insert(make_pair(n1, old_labels_new_labels.size()));
+    RANGE_loop(li, links1) {
+                
+        int node1=links1[li];
+        int node2=links2[li];
+        double weight=weights[li];
+        
+        if (labels.count(node1)==0) {
+            labels.insert(make_pair(node1, new_labels.size()));
+            new_labels.push_back(node1);
         }
-        if(old_labels_new_labels.count(n2)==0) {
-            old_labels_new_labels.insert(make_pair(n2, old_labels_new_labels.size()));
+        
+        if (labels.count(node2)==0) {
+            labels.insert(make_pair(node2, new_labels.size()));
+            new_labels.push_back(node2);
         }
-        links1[i]=old_labels_new_labels[n1];
-        links2[i]=old_labels_new_labels[n2];
-    }
-    
-    //cout<<"----------------------------"<<endl;
-    //prints(old_labels_new_labels);
-    // getting Links in map format
-    map<int, map<int, double> > Links;
-    for(unsigned int i=0; i<links1.size(); i++) {
-        if(Links.count(links1[i])==0) {
-            map<int, double > new_map;
-            Links.insert(make_pair(links1[i], new_map));
+        
+        node1=labels[node1];
+        node2=labels[node2];
+        
+        pair<int, int> link(min(node1,node2), max(node1, node2));
+        if (edges.count(link)==0) {
+            edges[link]=weight;
+        } else {
+            edges[link]+=weight;
         }
-        if(Links.count(links2[i])==0) {
-            map<int, double > new_map;
-            Links.insert(make_pair(links2[i], new_map));
+        
+        if(edges.size()%1000000==0) {
+            cout<<"read "<<edges.size()/1000000<<" million links"<<endl;
         }
-        if(Links[links1[i]].count(links2[i])==0) {
-            Links[links1[i]][links2[i]]=0;
-        }
-        if(Links[links2[i]].count(links1[i])==0) {
-            Links[links2[i]][links1[i]]=0;
-        }
-        Links[links1[i]][links2[i]]+=weights[i];
-        Links[links2[i]][links1[i]]+=weights[i];
         
     }
     
-    // back dictionary
-    mapii new_labels_old_labels;
-    IT_loop(mapii, itm, old_labels_new_labels) new_labels_old_labels[itm->second]=itm->first;
+    assert_ints(labels.size(), new_labels.size(), "labels old and new have diff. sizes");
     
     
-    // printing network
-    ofstream tempout("tmp_net.net");
-    tempout<<"*Vertices "<<new_labels_old_labels.size()<<endl;
-    IT_loop(mapii, itm, new_labels_old_labels) {
-        tempout<<itm->first+1<<" \""<<itm->first+1<<"\""<<endl;
+    cout<<"writing word graph to sig_words.net"<<endl;
+    ofstream sigout("sig_words.net");
+    sigout<<"*Vertices "<<labels.size()<<endl;
+    RANGE_loop(i, new_labels) {
+        sigout<<i+1<<" \""<<new_labels[i]<<"\""<<endl;
     }
-    tempout<<"*Edges"<<endl;
-    for(map<int, map<int, double> >::iterator itm_l =  Links.begin(); itm_l!=Links.end(); itm_l++) {
-        IT_loop(mapid, itm_l2, itm_l->second) {
-            if(itm_l->first < itm_l2->first) {
-                tempout<<itm_l->first+1<<" "<<itm_l2->first+1<<" "<<itm_l2->second<<endl;
-            }
-        }
+    sigout<<"*Edges"<<endl;
+    for(map<pair<int, int>, double>::iterator itm=edges.begin(); itm!=edges.end(); itm++) {
+        sigout<<itm->first.first+1<<" "<<itm->first.second+1<<" "<<itm->second<<endl;
     }
-    tempout.close();
+    sigout.close();
+    
     
     char num_trials_ch[200];
     sprintf(num_trials_ch, "  --num-trials %d ", Ntrials);
     char seed_ch[200];
     sprintf(seed_ch, " --seed %d ", random_seed);
-    string option_file(" tmp_net.net ./ --two-level --undirected  ");
+    string option_file(" sig_words.net ./ --two-level --undirected  ");
     string option_log(" > infomap.log");
     string command_line = INFOMAP_PATH + option_file + string(num_trials_ch) + string(seed_ch) + option_log;
     
     // running the code
+    cout<<"Running Infomap"<<endl;
     int sy=system(command_line.c_str());
     cout<<"Infomap's call returned:: "<<sy<<" "<<endl;
     
-    // getting the partition    
-    ifstream tree_in("tmp_net.tree");
+    // getting the partition
+    ifstream tree_in("sig_words.tree");
     string gins;
     while(getline(tree_in, gins)) if(gins.size()>0 and gins[0]!='#') {
         deque<string> vss;
         separate_strings_tree_file(gins,  vss);
-        //prints(vss);
         if(vss.size()!=4) {
             cerr<<"error in tree file"<<endl;
             exit(-1);
         }
-        int node_new_label= atoi(vss[3].c_str())-1;
+        int node_from_tree_file= atoi(vss[3].c_str());
         int cluster= atoi(vss[0].c_str());
-        hard_memberships[new_labels_old_labels.at(node_new_label)] = cluster;
+        hard_memberships[node_from_tree_file] = cluster;
     }
     
     tree_in.close();
     return 0.;
 }
-
-
-
-
 
 
 double get_infomap_partition_from_file(int Ntrials, int random_seed, \
