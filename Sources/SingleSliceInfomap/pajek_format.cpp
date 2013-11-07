@@ -8,6 +8,7 @@ int main(int argc, char * argv[]) {
     if(argc<2) {
         
         cerr<<argv[0]<<" [edge_list_file]"<<endl;
+        cerr<<"output is pajek.net"<<endl;
         return -1;
     }
         
@@ -64,7 +65,7 @@ int main(int argc, char * argv[]) {
     
     assert_ints(labels.size(), new_labels.size(), "labels old and new have diff. sizes");
      
-    ofstream pout("temp_net_file.net"); 
+    ofstream pout("pajek.net"); 
     
     pout<<"*Vertices "<<labels.size()<<endl;
     RANGE_loop(i, new_labels) {

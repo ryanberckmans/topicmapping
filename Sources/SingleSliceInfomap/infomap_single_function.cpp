@@ -154,6 +154,32 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
 
 
 
+void get_the_partition(string tree_file, mapii & hard_memberships) {
+    
+    
+    hard_memberships.clear();
+    
+    // getting the partition
+    ifstream tree_in(tree_file.c_str());
+    
+    string gins;
+    while(getline(tree_in, gins)) if(gins.size()>0 and gins[0]!='#') {
+        deque<string> vss;
+        separate_strings_tree_file(gins,  vss);
+        if(vss.size()!=4) {
+            cerr<<"error in tree file"<<endl;
+            exit(-1);
+        }
+        int node_from_tree_file= atoi(vss[3].c_str());
+        int cluster= atoi(vss[0].c_str());
+        hard_memberships[node_from_tree_file] = cluster;
+    }
+    
+    tree_in.close();
+
+
+}
+
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             const deque<int> & links1, const deque<int> & links2,
                                             const deque<double> & weights,
@@ -236,22 +262,8 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
     int sy=system(command_line.c_str());
     cout<<"Infomap's call returned:: "<<sy<<" "<<endl;
     
-    // getting the partition
-    ifstream tree_in("sig_words.tree");
-    string gins;
-    while(getline(tree_in, gins)) if(gins.size()>0 and gins[0]!='#') {
-        deque<string> vss;
-        separate_strings_tree_file(gins,  vss);
-        if(vss.size()!=4) {
-            cerr<<"error in tree file"<<endl;
-            exit(-1);
-        }
-        int node_from_tree_file= atoi(vss[3].c_str());
-        int cluster= atoi(vss[0].c_str());
-        hard_memberships[node_from_tree_file] = cluster;
-    }
+    get_the_partition("sig_words.tree", hard_memberships);
     
-    tree_in.close();
     return 0.;
 }
 
