@@ -105,6 +105,7 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     
     int iter=0;
     while(true) {
+    
         double new_sum=0.;
         //cout<<"gamma terms"<<endl;
         //prints(gamma_terms);
@@ -129,7 +130,7 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
         
     }
 
-    cout<<"new sum_alphas: "<<sum_alphas<<endl;
+    cout<<"average alpha: "<<sum_alphas/alphas_ldav_.size()<<endl;
     //prints(alphas);
     alphas_ldav_=alphas;
     

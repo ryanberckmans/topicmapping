@@ -368,6 +368,10 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag) {
     // this was set from optimize_alpha_sparse
     ofstream pout_final("lda_gammas.txt");
     printm(gammas_ldav, pout_final);
+
+    ofstream pout_alphas("alphas.txt");
+    prints(alphas_ldav_, pout_alphas);
+
     
     return 0.;
 }
