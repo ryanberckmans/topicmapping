@@ -167,6 +167,7 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
         int cluster= atoi(vss[0].c_str());
         hard_memberships[new_labels_old_labels.at(node_new_label)] = cluster;
     }
+    
     tree_in.close();
     return 0.;
 }
