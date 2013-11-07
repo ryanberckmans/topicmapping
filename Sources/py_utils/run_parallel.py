@@ -29,7 +29,7 @@ if __name__=='__main__':
 
     for i in range(jobs_square_root):
         for j in range(jobs_square_root):
-            print cur_dir
+            print 'job::', i, j
             new_folder='parallel_'+str(i)+'_'+str(j)+'_'+str(jobs_square_root)
             os.system('mkdir '+new_folder)
             os.chdir(new_folder)

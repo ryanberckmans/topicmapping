@@ -7,7 +7,7 @@ void word_corpus::dotpr_similarity_of_connected_words(map<pair<int, int> , int> 
 	RANGE_loop(doc_number, docs_) {
         
         if(doc_number%1000==0 and doc_number!=0){
-            cout<<"computing connected words:: "<<doc_number<<endl;
+            cout<<"computing word co-occurrences. doc_number::"<<doc_number<<endl;
         }
         deqii & wn_occs_doc= docs_[doc_number].wn_occs_;
         
