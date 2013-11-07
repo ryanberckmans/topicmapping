@@ -38,11 +38,14 @@ print 'Running code with no arguments: '
 os.system('./bin/topicmap')
 
 print '\n\n\n============================================== '
-print 'The code has been installed in ', cur_dir
-print 'Please do not rename/move the folder "bin" and its content from', cur_dir
-print 'Since topicmap calls ', infomap_path, ', renaming the executables breaks the code.'
+print 'This program has been installed in:'
+print cur_dir
+print 'Please do not rename/move the folder "bin" and its content from there.'
+print 'Since topicmap calls:'
+print infomap_path
+print 'renaming the executables breaks the code.'
 print 'If you are not happy with the current location,'
-print 'please move the entire folder "topicmapping" to the desired location'
+print 'please move the entire folder "topicmapping" to the desired location',
 print 'and run this script again.'
 
 
