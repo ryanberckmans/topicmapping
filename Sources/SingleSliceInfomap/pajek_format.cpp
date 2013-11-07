@@ -55,6 +55,10 @@ int main(int argc, char * argv[]) {
                 edges[link]+=weight;
             }
         }
+        
+        if(edges.size()%1000000==0) {
+            cout<<"read "<<edges.size()/1000000<<" million links"<<endl;
+        }
                 
     }
     
