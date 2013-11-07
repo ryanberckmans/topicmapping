@@ -1,51 +1,31 @@
 
-//#include "infomap.h"
-/*
-unsigned stou(char *s){
-    return strtoul(s,(char **)NULL,10);
-}
-void repeated_partition(MTRand *R, Node ***node, GreedyBase *greedy, bool silent,int Ntrials, const double & convergence_precision);
-void printTree(string s,multimap<double,treeNode,greater<double> >::iterator it_tM,ofstream *outfile,bool flip);
-void partition(MTRand *R,Node ***node, GreedyBase *greedy, bool silent, const double & convergence_precision);
-*/
-//#include "infomap_utilities.cpp"
 
 
 #include <stdlib.h>     /* atoi */
 
 
 bool separate_strings_tree_file(string &b, deque<string> & v) {		
-    
-	
-	
+    	
 	v.clear();
 	string s1;
 	
 	for(int i=0; i<int(b.size()); i++) {
 		
-		
 		if(b[i]==' ' || b[i]=='\t' || b[i]=='\n' || b[i]==',' || b[i]==':' || b[i]=='"') {
-			
 			if(s1.size()>0)
 				v.push_back(s1);
-            
 			s1.clear();
-            
             
 		} else
 			s1.push_back(b[i]);
 		
-		
 		if(i==int(b.size())-1) {
-            
-            
+        
 			if(s1.size()>0)
 				v.push_back(s1);			
 			s1.clear();
             
-            
 		}
-        
 	}
     
 	return true;
@@ -174,12 +154,10 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
 
 
 
-
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             const deque<int> & links1, const deque<int> & links2,
                                             const deque<double> & weights,
                                             mapii & hard_memberships, bool verbose) {
-
 
     //
     // same function as below
