@@ -1,4 +1,5 @@
 
+
 # include "../standard_package/standard_include.cpp"
 
 int main(int argc, char * argv[]) {
@@ -6,7 +7,7 @@ int main(int argc, char * argv[]) {
 	
     if(argc<2) {
         
-        cerr<<argv[0]<<" [edge list file]"<<endl;
+        cerr<<argv[0]<<" [edge_list_file]"<<endl;
         return -1;
     }
         

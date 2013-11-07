@@ -64,7 +64,6 @@ int main(int argc, char * argv[]) {
 
         cout<<"Effective number topics: "<<eff_ntopics<<endl;
         
-        // TODO: I should probably remove this (intermediate step)
         // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
         C.write_short_beta_and_theta_files(doc_topic_best, topic_word, \
                                            "doc_topics.txt", \

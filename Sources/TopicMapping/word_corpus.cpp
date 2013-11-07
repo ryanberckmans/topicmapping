@@ -56,9 +56,6 @@ void word_corpus::set_from_file(string filename) {
         assert_ints(itm->first, word_strings_.size()-1);
     }
     
-    
-	
-    
 }
 
 
