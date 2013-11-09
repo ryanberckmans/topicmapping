@@ -208,7 +208,7 @@ void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic,
     // the file is opened only if beta_file_short is passed
     if(beta_file_short.size()>0) {
         pout2.open(beta_file_short.c_str());
-        pout2<<"#docs_ "<<docs_.size()<<endl;
+        pout2<<"#docs "<<docs_.size()<<endl;
     }
     
     IT_loop(mapii, itm, topic_names) {

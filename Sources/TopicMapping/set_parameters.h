@@ -203,6 +203,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
     P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas -No alpha optimization is involved. As -alpha is just a scalar, this is symmetric LDA-");
     P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
+    P.set_int("-lag", 10, false, "[int] : lda model is printed every [-lag] EM steps.");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);

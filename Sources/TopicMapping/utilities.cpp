@@ -131,6 +131,8 @@ double compute_eff_num_topics(const mapid & pt) {
 void read_topic_model_from_file(map<int, mapid> & topic_word, string filename) {
 
     // getting topic_word from file similar to betas.txt
+    // TODO::: we should only use the sparse format for betas
+    // !!! ======================================= !!!
 
     topic_word.clear();
     ifstream gin(filename.c_str());

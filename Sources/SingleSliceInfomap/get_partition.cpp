@@ -7,14 +7,16 @@ string INFOMAP_PATH;
 int main(int argc, char * argv[]) {
 	
 	
-    if(argc<3) {
+    if(argc<4) {
         
-        cerr<<argv[0]<<" [sig_words.tree] [word_wn_count.txt]"<<endl;
-        cerr<<"output is clusters.part"<<endl;
+        cerr<<argv[0]<<" [sig_words.tree] [word_wn_count.txt] [max_words]"<<endl;
+        cerr<<"output is infomap.part and infomap-words.part"<<endl;
         return -1;
     }
     
     string infile(argv[1]);
+    string max_words(argv[3]);
+    int max_words_int= cast_int(cast_string_to_double(max_words));
     mapii hard_mems;
     
     // hard_memberships[wn]=cluster_id
@@ -60,10 +62,15 @@ int main(int argc, char * argv[]) {
             occ_wn.push_back(make_pair(-wn_occ.at(itm->second[i]), itm->second[i]));
         }
         sort(occ_wn.begin(), occ_wn.end());
-        for(UI i=0; i<min(50, int(occ_wn.size())); i++) {
+        
+        cout<<"# words: "<<occ_wn.size()<<endl;
+        for(int i=0; i<min(max_words_int, int(occ_wn.size())); i++) {
             pout<<wn_str.at(occ_wn[i].second)<<" ";
+            cout<<wn_str.at(occ_wn[i].second)<<" ";
         }
-        pout<<endl;
+        pout<<endl<<endl;
+        cout<<endl<<endl;
+
     }
     pout.close();
 

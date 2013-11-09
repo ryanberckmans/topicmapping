@@ -296,7 +296,7 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     
     double likelihood_all=0.;
     RANGE_loop(doc_number, docs_) {
-        if (doc_number%1000==0 and doc_number>0)
+        if (doc_number%10000==0 and doc_number>0)
             cout<<"running lda E-step for doc "<<doc_number<<endl;
         double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
         // writing likelihood of this doc to file
@@ -310,11 +310,12 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     
 }
 
-double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag) {
+double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag) {
     
     cout<<"running EM"<<endl;    
     
     ofstream likout("log_likelihood_per_doc.txt");    
+    ofstream likvalue("log_likelihood.txt");    
     double likelihood_old=-1e300;
     // this are the varaiational parameters which are the main output of the program
     
@@ -337,12 +338,12 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag) {
                 if(topic_pr->second > 0) {
                     betas_ldav_wn[topic_pr->first] = log(topic_pr->second) \
                                                     - log(class_total_ldav_map_.at(topic_pr->first));
-                } else {
+                } /*else {
                     // this should never happen
                     cerr<<"Small value in class_word_ldav_map_wn "<<topic_pr->second<<endl;
                     cerr<<"This is likely a bug! Please contact me: arg.lanci@gmail.com Thanks!"<<endl;
                     exit(-1);
-                }
+                } */
             }
         }
         // optimizing alphas
@@ -351,33 +352,78 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag) {
         }
         
         cout<<"log likelihood "<<likelihood_all<<endl;
+        likvalue<<iter<<" "<<likelihood_all<<endl;
         if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
             break;
         if(iter>MAX_ITER)
             break;
         likelihood_old=likelihood_all;
+        
+        if(iter%print_lag==1) {
+            print_lda_results();
+        }
+        
     }
     cout<<"final E step"<<endl;
     double likelihood_all = E_step(likout, true);
-    deque<DD> gammas_ldav;
-    compute_non_sparse_gammas(gammas_ldav);
     cout<<"log likelihood "<<likelihood_all<<endl;
+    likvalue<<iter+1<<" "<<likelihood_all<<endl;
 
-
-
-    // this was set from optimize_alpha_sparse
-    ofstream pout_final("lda_gammas.txt");
-    printm(gammas_ldav, pout_final);
-
-    ofstream pout_alphas("alphas.txt");
-    prints(alphas_ldav_, pout_alphas);
-
-    
     return 0.;
 }
 
 
+void word_corpus::print_lda_results() {
+    
+    deque<DD> gammas_ldav;
+    compute_non_sparse_gammas(gammas_ldav);    
+    ofstream pout_final("lda_gammas.txt");
+    printm(gammas_ldav, pout_final);
+    
+    ofstream pout1("lda_betas_sparse.txt");
+    ofstream pout2("lda_summary.txt");
+    
+    // topic_word[topic][wn]
+    map<int, mapid> topic_word;
 
+    RANGE_loop(wn, betas_ldav_map_) {
+        
+        mapid & betas_ldav_wn = betas_ldav_map_[wn];
+        
+        IT_loop(mapid, topic_pr, betas_ldav_wn) { 
+            int topic=topic_pr->first;
+            // inserting topic
+            if(topic_word.count(topic)==0) {
+                mapid void_mapid;
+                topic_word[topic]=void_mapid;
+            }
+            // inserting pr for this wn
+            double pr=exp(topic_pr->second);
+            if(pr>0)
+                topic_word[topic][wn]=pr;
+        }
+    }
+    
+    for(map<int, mapid>::iterator itm= topic_word.begin();
+        itm!=topic_word.end(); itm++) {
+        // printing topic distribution over words
+        mapid & topic_distr = itm->second;
+        deque<pair<double, int> > pr_word;
+        IT_loop(mapid, itm2, topic_distr) {
+            pr_word.push_back(make_pair(-itm2->second, itm2->first));
+        }
+        sort(pr_word.begin(), pr_word.end());
+        pout2<<"topic: "<<itm->first<<" #words: "<<pr_word.size()<<endl;
+        RANGE_loop(i, pr_word) {
+            pout1<<pr_word[i].second<<":"<<-pr_word[i].first<<" ";
+            if (i<20) {
+                pout2<<word_strings_[pr_word[i].second]<<" ";
+            }
+        }
+        pout1<<endl;
+        pout2<<endl;
+    }
+    pout1.close();
+    pout2.close();
 
-
-
+}

@@ -56,7 +56,7 @@ public:
                  map<int, mapid> & topic_word_best);
     
     double lda_model(map<int, mapid> & topic_word, double alpha_init,\
-                     bool skip_alpha_opt, bool infer_flag);
+                     bool skip_alpha_opt, bool infer_flag, int print_lag);
 
     
 private:
@@ -99,7 +99,7 @@ private:
     double compute_likelihood(int doc_number, DD & var_gamma);
     double E_step(ostream & likout, bool verbose);
     double run_em();
-    double run_em_sparse(bool skip_alpha_opt, bool infer_flag);
+    double run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag);
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
     void initialize_lda_data(map<int, mapid> & topic_word, double alphas_init);
@@ -120,7 +120,8 @@ private:
     double compute_likelihood_alpha_terms(double & sum_alphas);
     double lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha);
     
-    
+    void print_lda_results();
+
     
     
     // ======================= member variables ======================
@@ -162,6 +163,7 @@ private:
     deque<mapid> class_word_ldav_map_;
     mapid class_total_ldav_map_;
     deque<mapid> gammas_ldav_map_;
+    
     
 };
 
