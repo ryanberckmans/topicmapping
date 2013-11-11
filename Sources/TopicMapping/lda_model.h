@@ -9,15 +9,18 @@
 
 
 
-double word_corpus::lda_model(map<int, mapid> & topic_word, double alpha_init,\
-                              bool skip_alpha_opt, bool infer_flag, int print_lag) {
+double word_corpus::lda_model(map<int, mapid> & topic_word, \
+                              double alpha_init,\
+                              bool skip_alpha_opt, \
+                              bool infer_flag, int print_lag,\
+                              string alpha_file) {
 
 
 
-    cout<<"model is printed each "<<print_lag<<" EM steps"<<endl;
+    cout<<"LDA model is printed every "<<print_lag<<" EM steps"<<endl;
     // topic_word[topic][word] is p(w|t)
     // getting all data structures ready
-    initialize_lda_data(topic_word, alpha_init);
+    initialize_lda_data(topic_word, alpha_init, alpha_file);
     
     // loop until convergence
     run_em_sparse(skip_alpha_opt, infer_flag, print_lag);

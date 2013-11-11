@@ -4,6 +4,10 @@ typedef deque< pair<int, double> > did;
 typedef map<int, deque< pair<int, double> > > mapiid;
 typedef map<int, mapid> mapimapid;
 
+// values below this threshold are 
+// not included in betas
+# define SPARSE_limit 0
+
 #include "degree_block.cpp"
 #include "utilities.cpp"
 #include "log_table.cpp"
@@ -17,6 +21,8 @@ public:
 	~doc(){};
 	
 	void set_from_string(string s, mapsi & word_number_all, mapis & number_word_all);
+    void set_from_string_given_wn(string buffer, mapsi & word_wn_all);
+
 
 	UI num_words_;			// num_words_ (not unique) in the document
 	deqii wn_occs_;         // word-number - occurences
@@ -30,12 +36,13 @@ public:
 
 	word_corpus(double min_filter_p, double max_filter_p, 
                 double p_value_p, int min_docs_p, 
-                string partition_file_p, string corpus_file_p);
+                string partition_file_p);
 	~word_corpus(){};
 
 
     // setting the corpus
 	void set_from_file(string filename);
+    void set_from_file(string filename, string wn_file);
 	void write_corpus_file();
 
     // computing the network
@@ -56,8 +63,11 @@ public:
                  deque<mapid> & doc_topic_best, \
                  map<int, mapid> & topic_word_best);
     
-    double lda_model(map<int, mapid> & topic_word, double alpha_init,\
-                     bool skip_alpha_opt, bool infer_flag, int print_lag);
+    double lda_model(map<int, mapid> & topic_word, \
+                     double alpha_init,\
+                     bool skip_alpha_opt, \
+                     bool infer_flag, int print_lag,\
+                     string alpha_file);
 
     
 private:
@@ -103,7 +113,8 @@ private:
     double run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag);
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
-    void initialize_lda_data(map<int, mapid> & topic_word, double alphas_init);
+    void initialize_lda_data(map<int, mapid> & topic_word,\
+                             double alphas_init, string alpha_file);
     void compute_non_sparse_gammas(deque<DD> & gammas_ldav);
     void optimize_alpha(deque<DD> & gammas_ldav);
     void optimize_alpha_sparse();
@@ -173,7 +184,7 @@ private:
 
 word_corpus::word_corpus(double min_filter_p, double max_filter_p, 
                          double p_value_p, int min_docs_p, 
-                         string partition_file_p, string corpus_file_p) {
+                         string partition_file_p) {
     
     
     max_filter_=min(0.51, max_filter_p);
@@ -195,7 +206,6 @@ word_corpus::word_corpus(double min_filter_p, double max_filter_p,
     }
     
     
-    cout<<"*** corpus file: "<<corpus_file_p<<endl;
     cout<<"*** p-value: "<<p_value_<<endl;
     cout<<"*** min filter: "<<min_filter_<<endl;
     cout<<"*** max filter: "<<max_filter_<<endl;
@@ -204,8 +214,6 @@ word_corpus::word_corpus(double min_filter_p, double max_filter_p,
         cout<<"***  partition file: "<<partition_file_<<endl;
     
     
-    // setting docs_ and basic structures
-    set_from_file(corpus_file_p);
 }
 
 

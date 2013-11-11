@@ -59,6 +59,70 @@ void word_corpus::set_from_file(string filename) {
 }
 
 
+void word_corpus::set_from_file(string filename, string wn_file) {
+    
+    /*
+     only words which are found in this string will be considered
+     word_strings_ and word_occurrences_ are set from file
+     docs gets their word ids from word_occurrences_
+     words which are not found in word_strings_ are discarded
+     there might be words in word_strings_ which never appear in the datasets
+     that's fine unless we conpute p(topic|word)
+     */
+    
+
+    // ==== getting word_strings_ and word_occurrences_ =============
+    
+    word_strings_.clear();          // word_strings_[wn] = "word_in_text"	
+	word_occurrences_.clear();      // word_occurrences_[wn] = occurences
+    map<int, pair<string, int> > wn_word_occ_map;
+    string word_str;
+    int wn;
+    int occ;
+    ifstream gin_wn(wn_file.c_str());
+    while(gin_wn>>word_str) {
+        gin_wn>>wn; gin_wn>>occ;
+        wn_word_occ_map[wn]=make_pair(word_str, occ);
+    }
+    int counter=0;
+    mapsi word_wn_all;
+    for(map<int, pair<string, int> >::iterator itm= wn_word_occ_map.begin(); \
+        itm!=wn_word_occ_map.end(); itm++) {
+        assert_ints(itm->first, counter, "error in word_wn_count.txt. word_ids are not consecutive!");
+        // itm->second.first is a string
+        word_strings_.push_back(itm->second.first);
+        // itm->second.second is the occs
+        word_occurrences_.push_back(itm->second.second);
+        ++counter;
+        word_wn_all[itm->second.first]=itm->first;
+    }
+    gin_wn.close();
+    
+    // ============= setting documents ===============================
+
+    ifstream gin(filename.c_str());
+	string buffer;
+	while(getline(gin, buffer)) {
+        
+		doc newdoc;
+		newdoc.set_from_string_given_wn(buffer, word_wn_all);
+		if(newdoc.num_words_>0)
+			docs_.push_back(newdoc);
+        else {
+            cerr<<"Some line is empty in "<<filename<<endl;
+            cerr<<"Please avoid that, because it is messing with the document indexing"<<endl;
+            cerr<<"Exiting..."<<endl;
+            exit(-1);
+        }
+	}
+    gin.close();
+    cout<<"#docs "<<docs_.size()<<endl;
+
+	
+}
+
+
+
 void word_corpus::write_corpus_file() {
 	
 	ofstream pout("CORPUS.corpus");

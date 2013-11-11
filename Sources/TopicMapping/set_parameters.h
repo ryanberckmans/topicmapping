@@ -191,19 +191,22 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_string("-f", "nofile", true, "[string]: name of the corpus file (plain txt file)");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
     P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
-    P.set_int("-t", 0., false, "[int]: minimum number of documents per topic. Default is 0, but 10 is recommended for big corpuses.");    
+    P.set_int("-t", 0, true, "[int]: minimum number of documents per topic. 10 is recommended for fairly large datasets (more than 1000 documents)");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
-    P.set_double("-maxf", 0.51, false, "[double] maximum value for the likelihood filter.");
+    P.set_double("-maxf", 0.55, false, "[double] maximum value for the likelihood filter.");
     P.set_double("-alpha", 0.01, false, "[double] initial value of alpha.");
     P.set_double("-step", 0.01, false, "[double] step in PLSA filtering.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
     P.set_bool("-skip_opt_al", false, false, " : use this option to skip alpha optimization");
     P.set_string("-model", "", false, "[string]: a file like \"topic_words.txt\" saved from a previous run");
+    P.set_string("-word_wn", "", false, "[string]: a file like \"word_wn_count.txt\"");
+    P.set_string("-alpha_file", "", false, "[string]: a file like \"alphas.txt\" for setting the initial alphas.");
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
-    P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas -No alpha optimization is involved. As -alpha is just a scalar, this is symmetric LDA-");
+    P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas.");
     P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
     P.set_int("-lag", 20, false, "[int] : lda model is printed every [-lag] EM steps.");
+    P.set_bool("-corpus", false, false, " : writes dataset in .corpus format.");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
@@ -221,18 +224,23 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     
     
     
-    if (P.bool_ps.at("-infer")) {
+    if (P.bool_ps.at("-infer") or P.string_ps.at("-model").size()>0) {
         // if program is in infer mode, you need to specify -alpha
         // or better, -alpha_file 
         if(P.string_ps.at("-alpha_file").size()==0 \
            or P.string_ps.at("-model").size()==0 \
            or P.string_ps.at("-word_wn").size()==0) {
-            
-            cout<<"ERROR: you are running -infer without providing alphas from file. Current alpha is: ";
-            cout<<P.double_ps.at("-alpha")<<endl;
-            cout<<"OR you are not providing -model OR -word_wn"<<endl;
+                       
+            cout<<"ERROR: selecting -infer or -model requires options -alpha_file, and -word_wn"<<endl;
+            cout<<"-infer also requires -model"<<endl;
+            exit(-1);
             
         }
+    }
+    
+    if(P.string_ps.at("-alpha_file").size()>0 and P.string_ps.at("-model").size()==0) {
+        cout<<"ERROR: selecting -alpha_file requires options -model "<<endl;
+        exit(-1);
     }
     
 

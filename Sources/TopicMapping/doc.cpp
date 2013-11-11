@@ -22,3 +22,33 @@ void doc::set_from_string(string s, mapsi & word_number_all, mapis & number_word
 }
 
 
+void doc::set_from_string_given_wn(string s, mapsi & word_wn_all) {
+    
+    stringstream ss(s);
+    deque<string> tokens;
+	string buf;
+    while(ss >> buf)
+        tokens.push_back(buf);
+	mapii wn_occurences;
+    int num_words=0;
+	RANGE_loop(i, tokens) {
+        if(word_wn_all.count(tokens[i])>0) {
+            int_histogram(word_wn_all[tokens[i]], wn_occurences);
+            ++num_words;	
+        }
+	}
+    IT_loop(mapii, itm, wn_occurences) {
+        // storing data in deqii
+        wn_occs_.push_back(*itm);
+    }
+	num_words_=num_words;
+
+
+}
+
+
+
+
+
+
+

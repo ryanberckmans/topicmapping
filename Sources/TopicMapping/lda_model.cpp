@@ -1,8 +1,5 @@
 
 
-// values below this threshold are 
-// not included in betas
-# define SPARSE_limit 1e-12
 
 
 
@@ -22,7 +19,8 @@ void word_corpus::set_class_words_to_zeros_map() {
 }
 
 
-void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alphas_init) {
+void word_corpus::initialize_lda_data(map<int, mapid> & topic_word,\
+                                      double alphas_init, string alpha_file) {
     
     // this function is getting all data structure for lda topics ready
     // some asserts are also done
@@ -39,14 +37,20 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
     
     //lda data structures
     num_topics_ldav_=all_topics.size();
-
-    cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
     
     // initializing alphas_ldav_
     alphas_ldav_.clear();
-    cout<<"alpha initialized with:: "<<alphas_init<<endl;
-    alphas_ldav_.assign(num_topics_ldav_, alphas_init);
-
+    if(alpha_file.size()==0) {
+        cout<<"alpha initialized with:: "<<alphas_init<<endl;
+        alphas_ldav_.assign(num_topics_ldav_, alphas_init);
+    } else {
+        // getting alphas from file
+        string gins;
+        ifstream gin(alpha_file.c_str());
+        getline(gin, gins);
+        cast_string_to_doubles(gins, alphas_ldav_);
+        assert_ints(num_topics_ldav_, int(alphas_ldav_.size()), "ERROR with alpha size");
+    }
 
     cout<<"number of topics for LDA:: "<<num_topics_ldav_<<endl;    
         

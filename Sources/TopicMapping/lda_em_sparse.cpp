@@ -314,10 +314,11 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     
     cout<<"running EM"<<endl;    
     
-    ofstream likout("log_likelihood_per_doc.txt");    
-    ofstream likvalue("log_likelihood.txt");    
+    ofstream likout("lda_log_likelihood_per_doc.txt");    
+    ofstream likvalue("lda_log_likelihood.txt");    
     double likelihood_old=-1e300;
-    // this are the varaiational parameters which are the main output of the program
+    // these are the variational parameters
+    // which are the main output of the program
     
     int iter=0;
     while(infer_flag==false and iter<MAX_ITER) {
@@ -325,7 +326,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         ++iter;
         // E step
         cout<<"E step "<<iter<<endl;
-        double likelihood_all=E_step(likout, false);
+        double likelihood_all = E_step(likout, false);
 
         // M step
         // optimizing betas
@@ -355,8 +356,17 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         if(iter%print_lag==1) {
             print_lda_results();
         }
-        
     }
+    
+    
+    
+    print_lda_results();
+    map<int, mapid> topic_word_bak;
+    read_topic_model_from_file("lda_betas_sparse.txt", topic_word_bak);
+    system("mv lda_betas_sparse.txt lda_betas_sparse.bak");
+    print_topic_sparse_format(topic_word_bak, "ldaw222");
+    exit(-1);
+    
     cout<<"final E step"<<endl;
     double likelihood_all = E_step(likout, true);
     cout<<"log likelihood "<<likelihood_all<<endl;
@@ -364,6 +374,9 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     print_lda_results();
     
     
+
+    
+    // printing lda_class_words (just at the very end)
     bool print_class=true;
     if(print_class) {
         map<int, mapid> topic_word;
@@ -376,8 +389,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
 
 
 void word_corpus::print_lda_results() {
-    
-    
+        
     cout<<"printing LDA results"<<endl;
     deque<DD> gammas_ldav;
     compute_non_sparse_gammas(gammas_ldav);    
@@ -390,6 +402,9 @@ void word_corpus::print_lda_results() {
     print_topic_sparse_format(topic_word, "lda_betas_sparse.txt",\
                               "lda_summary.txt", word_strings_);
     
+    ofstream alpha_out("lda_alphas.txt");
+    prints(alphas_ldav_, alpha_out);
+    alpha_out.close();
     
 
 }
