@@ -73,6 +73,9 @@ void word_corpus::write_corpus_file() {
 	}
 }
 
+
+
+
 void word_corpus::write_partition(mapii & hard_mems) {
     
     map<int, DI> partition;
@@ -106,8 +109,9 @@ void word_corpus::write_partition(mapii & hard_mems) {
 }
 
 
-void word_corpus::write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
-                                             string theta_file, string beta_file) {
+void word_corpus::write_theta_file(deque<mapid> & doc_topic,\
+                                   map<int, mapid> & topic_word, \
+                                   string theta_file) {
     
     // for each topic, I use consecutive names
     mapii topic_names;
@@ -137,34 +141,7 @@ void word_corpus::write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, 
         }
         pout1<<endl;
     }
-    
-
-    // this number is very small in order to be below SPARSE_limit
-    double smoothing_par=1e-15;
-    
-    deque<DD> betas;
-    set_matrix_to_zero(topic_names.size(), word_occurrences_.size(), betas);
-    
-    double smoothing_par_per_word=smoothing_par/(double(word_occurrences_.size()));
-    
-    IT_loop(mapii, itm, topic_names) {
-        
-        DD & row= betas[itm->first];
-        mapid & topic_distr = topic_word[itm->second];
-        IT_loop(mapid, itm2, topic_distr) {
-            double smoothed_prob= (itm2->second+smoothing_par_per_word) / (1+smoothing_par) ;
-            row[itm2->first]=log(smoothed_prob);
-        }
-        RANGE_loop(w, row) if(row[w]==0) row[w]=log((smoothing_par_per_word) / (1+smoothing_par));
-    }
-    
-    print_matrix_to_file_or_screen(betas, beta_file);
 }
-
-
-
-
-
 
 
 void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic,
@@ -196,41 +173,19 @@ void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic,
         }
     }
     
+    // theta file in short format
     ofstream pout1(theta_file.c_str());
     RANGE_loop(i, doc_topic) {
-        IT_loop(mapid, itm, doc_topic[i])
-        pout1<<itm->first<<":"<<itm->second<<" ";
+        IT_loop(mapid, itm, doc_topic[i]) {
+            pout1<<itm->first<<" "<<itm->second<<" ";
+        }
         pout1<<endl;
     }
     pout1.close();
-    pout1.open(beta_file.c_str());
-    ofstream pout2;
-    // the file is opened only if beta_file_short is passed
-    if(beta_file_short.size()>0) {
-        pout2.open(beta_file_short.c_str());
-        pout2<<"#docs "<<docs_.size()<<endl;
-    }
     
-    IT_loop(mapii, itm, topic_names) {
-        // printing topic distribution over words
-        mapid & topic_distr = topic_word[itm->second];
-        deque<pair<double, int> > pr_word;
-        IT_loop(mapid, itm2, topic_distr) {
-            pr_word.push_back(make_pair(-itm2->second, itm2->first));
-        }
-        sort(pr_word.begin(), pr_word.end());
-        if(pout2.is_open()) pout2<<"topic: "<<itm->first<<" #words: "<<pr_word.size()<<" pt: "<<pt.at(itm->first)<<endl;
-        RANGE_loop(i, pr_word){
-            pout1<<word_strings_[pr_word[i].second]<<":"<<-pr_word[i].first<<" ";
-            if (i<20 and pout2.is_open()) {
-                pout2<<word_strings_[pr_word[i].second]<<" ";
-            } 
-        }
-        pout1<<endl;
-        if(pout2.is_open()) pout2<<endl;
-    }
-    pout1.close();
-    pout2.close();
+    // writing topics in sparse format
+    print_topic_sparse_format(topic_word, beta_file, beta_file_short, word_strings_);
+
 }
 
 

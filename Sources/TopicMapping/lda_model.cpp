@@ -38,8 +38,8 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
     // assertation done
     
     //lda data structures
-    
     num_topics_ldav_=all_topics.size();
+
     cout<<"number of topics for lda em: "<<num_topics_ldav_<<endl;
     
     // initializing alphas_ldav_
@@ -70,24 +70,7 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word, double alpha
     }
     
     // copying topic_word in betas_ldav_
-    // this is basically topic word
-    // but stored as [wn][topic]
-    // rather than [topic][wn]
-    // also I take log
-    // and I remove words below SPARSE_limit
-    // (which should be none actually)
-    
-    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
-         topic_itm!=topic_word.end(); topic_itm++) {
-        IT_loop(mapid, itm2, topic_itm->second) { 
-            int word_wn=itm2->first;
-            assert_ints(itm2->first, word_wn);
-            // words which are below this threshold should never 
-            // be relevant in this topic
-            if(itm2->second>SPARSE_limit)
-                betas_ldav_map_[word_wn][topic_itm->first] = log(itm2->second);
-        }
-    }
+    from_topic_word_to_beta(topic_word, betas_ldav_map_, SPARSE_limit);
 
     
     

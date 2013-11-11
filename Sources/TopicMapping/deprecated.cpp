@@ -430,3 +430,231 @@ void invert_doc_topic_newid(deque<mapii> & doc_topic_newid, map<int, mapii> & to
  }    
  set_class_words_to_zeros();
  */
+
+#include <stdlib.h>     /* atoi */
+
+/*
+
+ for in-out, we only use topic_word format
+ first number if the topic
+ everything with a # is ignored
+ 
+ How it looks:
+ #topic No. 3: star sky blue
+ 3 1:0.74647 45:0.73636 78:10.536
+ 
+ NB1. There can be multiple lines associated with the same topic
+ NB2. there is no need for normalization
+ 
+ topic_word[wn][topic]
+ beta_kind[topic][wn] and it is in  lig space
+
+*/
+
+
+void from_beta_to_topic_word(deque<mapid> & beta_kind, map<int, mapid> topic_word) {
+    
+    // take exp and inseting in topic_word
+    
+    topic_word.clear();
+    RANGE_loop(wn, beta_kind) {
+    
+        mapid & betas_ldav_wn = beta_kind.at(wn);
+        IT_loop(mapid, topic_pr, betas_ldav_wn) { 
+            int topic=topic_pr->first;
+            // inserting topic
+            if(topic_word.count(topic)==0) {
+                mapid void_mapid;
+                topic_word[topic]=void_mapid;
+            }
+            // inserting pr for this wn
+            double pr=exp(topic_pr->second);
+            if(pr>0)
+                topic_word[topic][wn]=pr;
+        }
+    }
+}
+
+
+void from_topic_word_to_beta(map<int, mapid> & topic_word, deque<mapid> & beta_kind, double sparse_limit) {
+    
+    // converting topic_word in beta_kind
+    // the function assumes that beta_kind
+    // was already initialized
+    // and words in topic_word are present in beta_kind    
+    
+    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+         topic_itm!=topic_word.end(); topic_itm++) {
+        IT_loop(mapid, itm2, topic_itm->second) { 
+            int wn=itm2->first;
+            // words which are below this threshold should never 
+            // be relevant in this topic
+            if(itm2->second>sparse_limit)
+                beta_kind.at(wn)[topic_itm->first] = log(itm2->second);
+        }
+    }
+}
+
+
+void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile, string outfile_short, const mapis & word_strings) {
+    
+    // writes print_topic_sparse_format
+    
+    ofstream pout1;
+    ofstream pout2;
+
+    pout1.open(outfile.c_str());
+    // the file is opened only if outfile_short and word_strings are provided
+    if(outfile_short.size()>0 and word_strings.size()>0) {
+        pout2.open(outfile_short.c_str());
+    }
+    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+         topic_itm!=topic_word.end(); topic_itm++) {
+        // printing topic distribution over words
+        mapid & topic_distr = topic_itm->second;
+        deque<pair<double, int> > pr_word;
+        IT_loop(mapid, itm2, topic_distr) {
+            pr_word.push_back(make_pair(-itm2->second, itm2->first));
+        }
+        sort(pr_word.begin(), pr_word.end());
+        if(pout2.is_open()) pout2<<"topic: "<<topic_itm->first<<" #words: "<<pr_word.size()<<endl;
+        pout1<<topic_itm->first<<" ";
+        RANGE_loop(i, pr_word) {
+            pout1<<pr_word[i].second<<" "<<-pr_word[i].first<<" ";
+            if (i<20 and pout2.is_open()) {
+                pout2<<word_strings.at(pr_word[i].second)<<" ";
+            } 
+        }
+        pout1<<endl;
+        if(pout2.is_open()) pout2<<endl;
+    }
+    pout1.close();
+    pout2.close();
+
+}
+
+
+void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile) {
+
+    string outfile_short;
+    mapis word_strings;
+    print_topic_sparse_format(topic_word, outfile, outfile_short, word_strings);
+}
+
+
+void get_sparse_matrix(string infile, map<int, mapid> & topic_word) {
+
+    // aggregates lines which start with the same topic
+    // and normalizes the mapid
+    
+    // topic_word[topic][wn]
+    topic_word.clear();
+
+    ifstream gin(infile.c_str());
+    string gins;    
+    
+    while(getline(gin, gins)) if(gins.size()>0 and gins[0]!='#') {
+        deque<string> vs;
+        separate_strings(gins, vs);
+
+        int wn=-1;
+        int topic=-1;
+        double pr=0.;
+        RANGE_loop(i, vs) {
+            if(i==0) {
+                topic=atoi(vs[i].c_str());
+            } else if(i%2==1) {
+                wn=atoi(vs[i].c_str());
+            } else {
+                pr=atof(vs[i].c_str());
+                // inserting
+                if(topic_word.count(topic)==0) {
+                    mapid new_mapid;
+                    topic_word[topic]=new_mapid;
+                }
+                int_histogram(wn, topic_word[topic], pr);
+            }
+        }
+    }
+    
+    
+    // making it consecutive
+    // for each topic, I use consecutive names
+    mapii old_to_new_labels;
+    
+    for(map<int, mapid>::iterator itm = topic_word.begin(); itm!=topic_word.end(); itm++) {
+        int tp=old_to_new_labels.size();
+        old_to_new_labels[itm->first]=tp;
+    }
+    
+    // fixing topic_word
+    map<int, mapid> new_topic_word;
+    for(map<int, mapid>::iterator itm = topic_word.begin(); itm!=topic_word.end(); itm++) {
+        new_topic_word.insert(make_pair(old_to_new_labels.at(itm->first), itm->second));
+    }
+    topic_word= new_topic_word;
+    
+    // normalize it
+    for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+         topic_itm!=topic_word.end(); topic_itm++) {
+        normalize_mapid(topic_itm->second);
+    }
+        
+}
+
+
+
+
+int main() {
+
+    map<int, mapid> top;
+        
+    deque<mapid> beta_kind;
+    mapid void_mapid;    
+    beta_kind.push_back(void_mapid);
+    beta_kind.push_back(void_mapid);
+    beta_kind.push_back(void_mapid);
+    beta_kind.push_back(void_mapid);
+    beta_kind.push_back(void_mapid);
+    
+    get_sparse_matrix("test3.map", top); 
+    print_topic_sparse_format(top, "test3b.map");
+    
+    from_topic_word_to_beta(top, beta_kind, 1e-10);
+    RANGE_loop(wn, beta_kind) {
+        cout<<"wn: "<<wn<<endl;
+        prints(beta_kind[wn]);
+    }
+    from_beta_to_topic_word(beta_kind, top);
+    print_topic_sparse_format(top, "test4.map");
+    
+
+    
+    
+}
+
+
+void read_topic_model_from_file(map<int, mapid> & topic_word, string filename) {
+    
+    // getting topic_word from file similar to "topic_words.txt"
+    
+    topic_word.clear();
+    ifstream gin(filename.c_str());
+    string gins;
+    int count_line=0;
+    while(getline(gin, gins)) {
+        DD vv;
+        cast_string_to_doubles(gins, vv);
+        mapid topic_word_mapid;
+        double check_sum=0.;
+        RANGE_loop(i, vv) {
+            topic_word_mapid[i]=exp(vv[i]);
+            check_sum+=topic_word_mapid[i];
+        }
+        if(fabs(check_sum-1)>1e-5) {
+            cerr<<"error in check_sum "<<check_sum-1<<endl; exit(-1);
+        }
+        topic_word[count_line]=topic_word_mapid;
+        count_line+=1;
+    }
+}

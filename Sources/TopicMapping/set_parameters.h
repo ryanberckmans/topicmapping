@@ -199,11 +199,11 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
     P.set_bool("-skip_opt_al", false, false, " : use this option to skip alpha optimization");
-    P.set_string("-model", "", false, "[string]: a file like \"betas.txt\" saved from a previous run");
+    P.set_string("-model", "", false, "[string]: a file like \"topic_words.txt\" saved from a previous run");
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
     P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas -No alpha optimization is involved. As -alpha is just a scalar, this is symmetric LDA-");
     P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
-    P.set_int("-lag", 10, false, "[int] : lda model is printed every [-lag] EM steps.");
+    P.set_int("-lag", 20, false, "[int] : lda model is printed every [-lag] EM steps.");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
@@ -220,15 +220,20 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
                    "error: you cannot set -parall and -part together");
     
     
-    /*
+    
     if (P.bool_ps.at("-infer")) {
         // if program is in infer mode, you need to specify -alpha
         // or better, -alpha_file 
-        if(P.string_ps.at("-alpha_file").size()==0) {
-            cout<<"Warning: you are running -infer without providing alphas from file. Current alpha is: ";
-            cout<<P.double_ps.at("-alpha")<<endl;;
+        if(P.string_ps.at("-alpha_file").size()==0 \
+           or P.string_ps.at("-model").size()==0 \
+           or P.string_ps.at("-word_wn").size()==0) {
+            
+            cout<<"ERROR: you are running -infer without providing alphas from file. Current alpha is: ";
+            cout<<P.double_ps.at("-alpha")<<endl;
+            cout<<"OR you are not providing -model OR -word_wn"<<endl;
+            
         }
-    }*/
+    }
     
 
 

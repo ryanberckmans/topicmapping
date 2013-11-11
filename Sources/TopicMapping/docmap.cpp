@@ -28,6 +28,7 @@ int main(int argc, char * argv[]) {
                   P.int_ps.at("-t"),  
                   P.string_ps.at("-part"), 
                   P.string_ps.at("-f") );
+                  // this should not be the only option
     
     cout<<"corpus was set"<<endl;
     
@@ -64,25 +65,24 @@ int main(int argc, char * argv[]) {
 
         cout<<"Effective number topics: "<<eff_ntopics<<endl;
         
-        // TODO: I should probably remove this (intermediate step)
         // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
         C.write_short_beta_and_theta_files(doc_topic_best, topic_word, \
                                            "doc_topics.txt", \
                                            "topic_words.txt", \
                                            "topic_summary.txt", pt);    
-        C.write_beta_and_theta_files(doc_topic_best, topic_word, \
-                                     "thetas.txt", "betas.txt");
+        C.write_theta_file(doc_topic_best, topic_word, "thetas.txt");
     
     } else {
         // skipping all the previous part because we are loading a model from file
-        read_topic_model_from_file(topic_word, P.string_ps.at("-model"));
+        read_topic_model_from_file(P.string_ps.at("-model"), topic_word);
     }
     
     // optimizing LDA
     C.lda_model(topic_word,
                 P.double_ps.at("-alpha"), \
                 P.bool_ps.at("-skip_opt_al"), \
-                P.bool_ps.at("-infer")   );
+                P.bool_ps.at("-infer"),\
+                P.int_ps.at("-lag"));
     
 
     return 0;

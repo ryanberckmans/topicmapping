@@ -12,6 +12,9 @@
 double word_corpus::lda_model(map<int, mapid> & topic_word, double alpha_init,\
                               bool skip_alpha_opt, bool infer_flag, int print_lag) {
 
+
+
+    cout<<"model is printed each "<<print_lag<<" EM steps"<<endl;
     // topic_word[topic][word] is p(w|t)
     // getting all data structures ready
     initialize_lda_data(topic_word, alpha_init);

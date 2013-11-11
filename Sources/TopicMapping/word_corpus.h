@@ -40,8 +40,9 @@ public:
 
     // computing the network
     void null_model(string parall_str);
-    void write_beta_and_theta_files(deque<mapid> & doc_topic, map<int, mapid> & topic_word, \
-                                    string theta_file, string beta_file);
+    void write_theta_file(deque<mapid> & doc_topic,\
+                          map<int, mapid> & topic_word, \
+                          string theta_file);
     void write_short_beta_and_theta_files(deque<mapid> & doc_topic,\
                                           map<int, mapid> & topic_word, \
                                           string theta_file, \
@@ -127,9 +128,9 @@ private:
     // ======================= member variables ======================
     
     // basic data structures
-    deque<string> word_strings_;	// word_strings_[wn] = "word_in_text"	
-	DI word_occurrences_;            // word_occurrences_[wn] = occurences
-	deque<doc> docs_;                // documents
+    deque<string> word_strings_;        // word_strings_[wn] = "word_in_text"	
+	DI word_occurrences_;               // word_occurrences_[wn] = occurences
+	deque<doc> docs_;                   // documents
     
     
     // parameters
