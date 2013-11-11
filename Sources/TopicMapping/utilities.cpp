@@ -102,25 +102,12 @@ void update_map_wordnum(mapsi & word_number, mapis & number_word, string s) {
 }
 
 
-void print_theta(mapid & theta_doc, mapii & new_names_for_topics, ostream & pout) {
-    
-    DD thetas;
-    thetas.assign(new_names_for_topics.size(), 0.);
-    IT_loop(mapid, itm, theta_doc) {
-        thetas[new_names_for_topics[itm->first]]=itm->second;
-    }
-    prints(thetas, pout);
-}
-
 
 double compute_eff_num_topics(const mapid & pt) {
     double h=0.;
     IT_const_loop(mapid, itm, pt) h+=itm->second*log2(itm->second);
     return pow(2,-1*h);
 }
-
-
-
 
 
 
