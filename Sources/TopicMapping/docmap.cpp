@@ -26,11 +26,21 @@ int main(int argc, char * argv[]) {
                   P.double_ps.at("-maxf"),
                   P.double_ps.at("-p"), 
                   P.int_ps.at("-t"),  
-                  P.string_ps.at("-part"), 
-                  P.string_ps.at("-f") );
-                  // this should not be the only option
+                  P.string_ps.at("-part"));
     
+    // setting docs_ and basic structures
+    if(P.string_ps.at("-word_wn").size()==0) {
+        cout<<"*** corpus file: "<<P.string_ps.at("-f")<<endl;
+        C.set_from_file(P.string_ps.at("-f"));
+    } else {
+        C.set_from_file(P.string_ps.at("-f"), P.string_ps.at("-word_wn"));        
+    }
     cout<<"corpus was set"<<endl;
+    
+    if(P.bool_ps.at("-corpus")) {
+        cout<<"writing corpus file CORPUS.corpus"<<endl;
+        C.write_corpus_file();
+    }
     
     if(P.string_ps.at("-parall").size()!=0) {
         cout<<"running null model only"<<endl;
@@ -40,7 +50,6 @@ int main(int argc, char * argv[]) {
 
     // topic_word[topic][word] is p(w|t)
     map<int, mapid> topic_word;
-
 
     if(P.string_ps.at("-model").size()==0) {
         
@@ -63,14 +72,14 @@ int main(int argc, char * argv[]) {
                                    pt, doc_topic_best, \
                                    topic_word);
 
-        cout<<"Effective number topics: "<<eff_ntopics<<endl;
+        cout<<"effective number topics: "<<eff_ntopics<<endl;
         
         // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
         C.write_short_beta_and_theta_files(doc_topic_best, topic_word, \
-                                           "doc_topics.txt", \
-                                           "topic_words.txt", \
-                                           "topic_summary.txt", pt);    
-        C.write_theta_file(doc_topic_best, topic_word, "thetas.txt");
+                                           "plsa_thetas_sparse.txt", \
+                                           "plsa_betas_sparse.txt", \
+                                           "plsa_summary.txt", pt);    
+        C.write_theta_file(doc_topic_best, topic_word, "plsa_thetas.txt");
     
     } else {
         // skipping all the previous part because we are loading a model from file
@@ -82,7 +91,8 @@ int main(int argc, char * argv[]) {
                 P.double_ps.at("-alpha"), \
                 P.bool_ps.at("-skip_opt_al"), \
                 P.bool_ps.at("-infer"),\
-                P.int_ps.at("-lag"));
+                P.int_ps.at("-lag"), \
+                P.string_ps.at("-alpha_file"));
     
 
     return 0;
