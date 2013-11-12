@@ -154,7 +154,7 @@ void from_beta_to_topic_word(deque<mapid> & beta_kind, map<int, mapid> & topic_w
 }
 
 
-void from_class_to_topic_word(deque<mapid> & class_kind, map<int, mapid> & topic_word) {
+void from_class_to_topic_word(deque<mapid> & class_kind, map<int, mapid> & topic_word, bool normalize) {
     
     // same function as above but without exp
     
@@ -174,6 +174,12 @@ void from_class_to_topic_word(deque<mapid> & class_kind, map<int, mapid> & topic
                 topic_word[topic][wn]=pr;
         }
     }
+    
+    // normalize it
+    if(normalize) for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
+         topic_itm!=topic_word.end(); topic_itm++) {
+        normalize_mapid(topic_itm->second);
+    }
 }
 
 
@@ -183,6 +189,8 @@ void from_topic_word_to_beta(map<int, mapid> & topic_word, deque<mapid> & beta_k
     // the function assumes that beta_kind
     // was already initialized
     // and words in topic_word are present in beta_kind    
+    
+    RANGE_loop(wn, beta_kind) beta_kind[wn].clear();
     
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
          topic_itm!=topic_word.end(); topic_itm++) {

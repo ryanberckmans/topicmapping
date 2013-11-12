@@ -118,7 +118,6 @@ private:
     void compute_non_sparse_gammas(deque<DD> & gammas_ldav);
     void optimize_alpha(deque<DD> & gammas_ldav);
     void optimize_alpha_sparse();
-    
     double compute_likelihood_sparse(int doc_number, \
                                      mapid & var_gamma, mapid & digamma_gam, 
                                      const double & digsum, 
@@ -133,7 +132,7 @@ private:
     double lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha);
     
     void print_lda_results();
-
+    void print_betas(string outfile);
     
     
     // ======================= member variables ======================

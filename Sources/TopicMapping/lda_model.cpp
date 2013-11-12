@@ -115,4 +115,13 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word,\
 
 
 
+void word_corpus::print_betas(string outfile) {
+    
+    ofstream pout(outfile.c_str());
+    RANGE_loop(wn, betas_ldav_map_) {
+        pout<<"wn:: "<<wn<<endl;
+        prints(betas_ldav_map_[wn], pout);
+    }
+    
+}
 

@@ -3,6 +3,10 @@
 # define MAX_ITER 1000
 # define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
 # define VARGAMMA_precision 1e-6
+// use the following values if you do not want 
+// to use sparse data structures
+//# define DIGAMMA_precision -1000000000.
+//# define VARGAMMA_precision 0.
 # define SMALL_LOG -100
 
 
@@ -310,6 +314,8 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     
 }
 
+
+
 double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag) {
     
     cout<<"running EM"<<endl;    
@@ -358,29 +364,18 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         }
     }
     
-    
-    
-    print_lda_results();
-    map<int, mapid> topic_word_bak;
-    read_topic_model_from_file("lda_betas_sparse.txt", topic_word_bak);
-    system("mv lda_betas_sparse.txt lda_betas_sparse.bak");
-    print_topic_sparse_format(topic_word_bak, "ldaw222");
-    exit(-1);
-    
+        
     cout<<"final E step"<<endl;
     double likelihood_all = E_step(likout, true);
     cout<<"log likelihood "<<likelihood_all<<endl;
     likvalue<<iter+1<<" "<<likelihood_all<<endl;
     print_lda_results();
     
-    
-
-    
     // printing lda_class_words (just at the very end)
     bool print_class=true;
     if(print_class) {
         map<int, mapid> topic_word;
-        from_class_to_topic_word(class_word_ldav_map_, topic_word);
+        from_class_to_topic_word(class_word_ldav_map_, topic_word, false);
         print_topic_sparse_format(topic_word, "lda_class_words.txt");
     }
 
