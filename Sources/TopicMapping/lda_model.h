@@ -2,8 +2,8 @@
 // adapting code from lda-c ( http://www.cs.princeton.edu/~blei/topicmodeling.html )
 
 #include "lda_util.cpp"
-#include "lda_model.cpp"
 #include "alpha_optimization.cpp"
+#include "lda_model.cpp"
 //#include "lda_em.cpp"
 #include "lda_em_sparse.cpp"
 

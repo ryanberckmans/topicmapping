@@ -19,6 +19,11 @@ os.system('rm -r bin/')
 os.system('mkdir bin')
 os.system('mv ./Sources/Infomap-0.11.5/Infomap bin/Infomap')
 
+
+print 'compiling alpha_optimization'
+os.system('g++ -O3 -funroll-loops -Wall -o bin/opt_alpha ./Sources/TopicMapping/optimize_alpha.cpp')
+
+
 infomap_path= cur_dir+'/bin/Infomap'
 
 original_file='./Sources/TopicMapping/docmap.cpp'

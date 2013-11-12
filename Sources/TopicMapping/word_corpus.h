@@ -116,7 +116,6 @@ private:
     void initialize_lda_data(map<int, mapid> & topic_word,\
                              double alphas_init, string alpha_file);
     void compute_non_sparse_gammas(deque<DD> & gammas_ldav);
-    void optimize_alpha(deque<DD> & gammas_ldav);
     void optimize_alpha_sparse();
     double compute_likelihood_sparse(int doc_number, \
                                      mapid & var_gamma, mapid & digamma_gam, 

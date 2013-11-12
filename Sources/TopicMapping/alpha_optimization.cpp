@@ -1,11 +1,6 @@
 
 
-
-
-
-
-void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
-    
+void optimize_alpha(deque<DD> & gammas_ldav, DD & alphas_ldav) {
     
     /*
         This function could be optimized further.
@@ -17,37 +12,38 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     */
     
     
-    double sum_alphas=0.;
-    RANGE_loop(k, alphas_ldav_) sum_alphas+=alphas_ldav_[k];
+    //double sum_alphas=0.;
+    //RANGE_loop(k, alphas_ldav_) sum_alphas+=alphas_ldav_[k];
     
     // ps[i][k] is the probability of topic k in sample i
-    deque<DD> ps;
+
+    general_assert(gammas_ldav.size()>0, "no documents in optimize_alpha");
+    int num_topics_ldav = gammas_ldav[0].size();
     
+    deque<DD> ps;
     DD sum_gamma_over_topics;
     sum_gamma_over_topics.assign(gammas_ldav.size(), 0.);
     
     RANGE_loop(i, gammas_ldav) {
         ps.push_back(gammas_ldav[i]);
-        double sum_=normalize_one(ps[i]);
+        double sum_ps=normalize_one(ps[i]);
         // this assert is true but there might be round-off problems
-        //assert_floats((docs_[i].num_words_+sum_alphas)/sum_, 1., "error in gamma terms");
-        sum_gamma_over_topics[i]=digamma(sum_);
+        //assert_floats((docs_[i].num_words_+sum_alphas)/sum_ps, 1., "error in gamma terms");
+        sum_gamma_over_topics[i]=digamma(sum_ps);
     }
     
     if(gammas_ldav.size()==0) {
-        cerr<<"gammas_ldav are empty in optimize_alpha"<<endl; exit(-1);
+        cerr<<"gammas_ldav are empty in optimize_alpha"<<endl;
+        exit(-1);
     }
-
-    // this is only important the first time 
-    // I should move this to initialization
     
     
     //-------------------------- BEGIN INITIALIZATION --------------------
     // average_ps[k] is the average over i of p[i][k]
     DD average_ps;
-    average_ps.assign(num_topics_ldav_, 0.);
+    average_ps.assign(num_topics_ldav, 0.);
     DD average_square_ps;
-    average_square_ps.assign(num_topics_ldav_, 0.);
+    average_square_ps.assign(num_topics_ldav, 0.);
     RANGE_loop(i, ps) {
         RANGE_loop(k, ps[i]) {
             average_ps[k]+=ps[i][k];
@@ -61,7 +57,7 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
 
     // 1/gammas_ldav.size() x sum_i [ digamma(gammas_ldav[i][k]) - sum_gamma_over_topics[i]] 
     DD gamma_terms;
-    gamma_terms.assign(num_topics_ldav_, 0.);
+    gamma_terms.assign(num_topics_ldav, 0.);
     
     RANGE_loop(i, ps) {
         RANGE_loop(k, ps[i]) {
@@ -97,7 +93,7 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
     
     DD alphas;
     RANGE_loop(k, average_ps) alphas.push_back(average_ps[k]*alpha_sum);
-    sum_alphas=0.;
+    double sum_alphas=0.;
     RANGE_loop(k, alphas) sum_alphas+=alphas[k];
 
     //cout<<"alpha_sum:: "<<alpha_sum<<" "<<sum_alphas<<endl;
@@ -130,47 +126,13 @@ void word_corpus::optimize_alpha(deque<DD> & gammas_ldav) {
         
     }
 
-    cout<<"average alpha: "<<sum_alphas/alphas_ldav_.size()<<endl;
+    cout<<"average alpha: "<<sum_alphas/num_topics_ldav<<endl;
     //prints(alphas);
-    alphas_ldav_=alphas;
+    alphas_ldav=alphas;
     
     
 }
 
-void word_corpus::compute_non_sparse_gammas(deque<DD> & gammas_ldav) {
-    
-    // copying gammas_ldav_map_ in gammas_ldav
-    // topics which are not gammas_ldav_map_ get just the prior (alphas_ldav_)
-    
-    gammas_ldav.clear();    
-    
-    DD void_dd_numtops;
-    void_dd_numtops.assign(num_topics_ldav_, 0.);
-    
-    // initializing gammas
-    RANGE_loop(doc_number, docs_) {
-        gammas_ldav.push_back(void_dd_numtops);
-    }
-    
-    RANGE_loop(doc_number, docs_) {
-        IT_loop(mapid, itm, gammas_ldav_map_.at(doc_number)) {
-            gammas_ldav[doc_number][itm->first]=itm->second;
-        }
-        RANGE_loop(k, gammas_ldav[doc_number]) {
-            gammas_ldav[doc_number][k]=max(gammas_ldav[doc_number][k], alphas_ldav_[k]);
-        }
-    }
-
-}
-
-
-void word_corpus::optimize_alpha_sparse() {
-    
-    deque<DD> gammas_ldav;
-    compute_non_sparse_gammas(gammas_ldav);
-    optimize_alpha(gammas_ldav);
-    
-}
 
 
 

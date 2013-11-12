@@ -20,7 +20,7 @@ def all_jobs_are_done(files, filename='done.txt', waiting_time=10):
             except:
                 last_word='not done!'
             # we are done yet *somewhere*
-            if last_word!='done!!':
+            if last_word!='--done!--':
                 done=False
                 print 'not done yet in', f
 
@@ -52,8 +52,24 @@ if __name__=='__main__':
     
     dones=glob.glob('parallel_lda_*')
     
-    # this lests you wait until all jobs are done
-    all_jobs_are_done(dones)
+    # splits docs in folder
+    
+    while condition:
+        
+        
+        for folders:
+            # move to folder
+            # E step
+            os.system('./bin/topicmap -f 'datasets'  -infer -model 'initialmodel' -alpha_file 'initialalpha' -word_wn word_wn_count.txt &')
+        
+        # this lets you wait until all jobs are done
+        all_jobs_are_done(dones)
+        # cat folders*/lda_class_words.txt > model.txt
+        # cat folders*/lda_gammas.txt > all_gammas.txt
+        # sum folders*/lda_log_likelihood.txt
+        os.system('./bin/opt_alpha gammafile')
+        
+    
     
     print 'done!!'
     

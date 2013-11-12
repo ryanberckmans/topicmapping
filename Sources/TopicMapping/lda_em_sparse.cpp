@@ -355,7 +355,8 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         
         cout<<"log likelihood "<<likelihood_all<<endl;
         likvalue<<iter<<" "<<likelihood_all<<endl;
-        if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision )
+        if( fabs( ( likelihood_all - likelihood_old ) / likelihood_old ) < LIK_precision or \
+           likelihood_old>likelihood_all )
             break;
         likelihood_old=likelihood_all;
         
@@ -364,7 +365,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         }
     }
     
-        
+    
     cout<<"final E step"<<endl;
     double likelihood_all = E_step(likout, true);
     cout<<"log likelihood "<<likelihood_all<<endl;
@@ -372,12 +373,10 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     print_lda_results();
     
     // printing lda_class_words (just at the very end)
-    bool print_class=true;
-    if(print_class) {
-        map<int, mapid> topic_word;
-        from_class_to_topic_word(class_word_ldav_map_, topic_word, false);
-        print_topic_sparse_format(topic_word, "lda_class_words.txt");
-    }
+    map<int, mapid> topic_word;
+    from_class_to_topic_word(class_word_ldav_map_, topic_word, false);
+    print_topic_sparse_format(topic_word, "lda_class_words.txt");
+    
 
     return 0.;
 }
