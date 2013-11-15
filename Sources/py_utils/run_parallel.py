@@ -4,7 +4,9 @@
     this script is meant to run topicmapping
     for building the network of significant words
     for very large datasets
-    '''
+    this scripts allows to parallelize the first step:
+    getting a partition of words
+'''
 
 import sys
 import os
@@ -44,8 +46,15 @@ if __name__=='__main__':
             os.chdir(working_dir)
     
     print 'when jobs will be done, you can collect the networks with:'
-    print 'cat parallel_*/sig_words*.edges > sig_words.edges'
+    print '>>> cat parallel_*/sig_words*.edges > sig_words.edges'
     print 'Write the network in pajek format with:'
-    print 'mkdir sig_words_results/'
+    print '>>> ./bin/edges2pajek sig_words.edges'
+    print '>>> mkdir sig_words_results/'
     print 'Run Infomap with:'
-    print './bin/Infomap pajek.net sig_words_results/ --two-level --undirected --num-trials 10 --seed 10 > infomap.log &'
+    print './bin/Infomap pajek.net sig_words_results/ --two-level --undirected --num-trials 10 --seed 10 > infomap.log'
+    print 'Get partition in .part format with:'
+    print '>>> ./bin/tree2part sig_words_results/pajek.tree word_wn_count.txt 100'
+    print 'File "word_wn_count.txt" can be found in each parallel_* folder (they are all identical).'
+    print 'Now the first step is done. You can now run topicmap with option -part infomap.part'
+    
+    

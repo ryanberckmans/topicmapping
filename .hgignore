@@ -50,3 +50,4 @@ topicmap4nov
 *.map
 run_test_infer.sh
 opt_alpha
+edges2pajek

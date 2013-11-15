@@ -23,6 +23,12 @@ os.system('mv ./Sources/Infomap-0.11.5/Infomap bin/Infomap')
 print 'compiling alpha_optimization'
 os.system('g++ -O3 -funroll-loops -Wall -o bin/opt_alpha ./Sources/TopicMapping/optimize_alpha.cpp')
 
+print 'compiling pajek formatter'
+os.system('g++ -O3 -funroll-loops -Wall -o bin/edges2pajek ./Sources/SingleSliceInfomap/pajek_format.cpp')
+
+print 'compiling partition converted'
+os.system('g++ -O3 -funroll-loops -Wall -o bin/tree2part ./Sources/SingleSliceInfomap/get_partition.cpp')
+
 
 infomap_path= cur_dir+'/bin/Infomap'
 

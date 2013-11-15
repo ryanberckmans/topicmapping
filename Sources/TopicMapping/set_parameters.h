@@ -194,7 +194,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_int("-t", 0, true, "[int]: minimum number of documents per topic. 10 is recommended for fairly large datasets (more than 1000 documents)");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
     P.set_double("-maxf", 0.55, false, "[double] maximum value for the likelihood filter.");
-    P.set_double("-alpha", 0.01, false, "[double] initial value of alpha.");
+    P.set_double("-alpha", 0.01, false, "[double] initial value of alpha. Default is 0.01");
     P.set_double("-step", 0.01, false, "[double] step in PLSA filtering.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");

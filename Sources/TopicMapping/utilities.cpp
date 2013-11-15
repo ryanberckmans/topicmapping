@@ -119,7 +119,7 @@ double compute_eff_num_topics(const mapid & pt) {
  
  How it looks:
  #topic No. 3: star sky blue
- 3 1:0.74647 45:0.73636 78:10.536
+ 3 1 0.74647 45 0.73636 78 10.536
  
  NB1. There can be multiple lines associated with the same topic
  NB2. there is no need for normalization
@@ -255,6 +255,9 @@ void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile) {
 void read_topic_model_from_file(string infile, map<int, mapid> & topic_word) {
     
     
+    // !!!this function is a bit silent!!!
+    // !!!add some format checks!!!
+    
     // getting topic_word from file similar to "topic_words.txt"
     // aggregates lines which start with the same topic
     // and normalizes the mapid
@@ -289,22 +292,13 @@ void read_topic_model_from_file(string infile, map<int, mapid> & topic_word) {
         }
     }
     
-    
-    // making it consecutive
-    // for each topic, I use consecutive names
-    mapii old_to_new_labels;
-    
+    // asserting topics are consecutive
+    DI all_topics;    
     for(map<int, mapid>::iterator itm = topic_word.begin(); itm!=topic_word.end(); itm++) {
-        int tp=old_to_new_labels.size();
-        old_to_new_labels[itm->first]=tp;
+        all_topics.push_back(itm->first);
     }
-    
-    // fixing topic_word
-    map<int, mapid> new_topic_word;
-    for(map<int, mapid>::iterator itm = topic_word.begin(); itm!=topic_word.end(); itm++) {
-        new_topic_word.insert(make_pair(old_to_new_labels.at(itm->first), itm->second));
-    }
-    topic_word= new_topic_word;
+    assert_consecutive(all_topics);
+
     
     // normalize it
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 

@@ -6,7 +6,12 @@ import time
 import glob
 
 
-def all_jobs_are_done(files, filename='done.txt', waiting_time=10):
+def slice_docs(no_docs, no_jobs):
+    
+    div
+
+
+def all_jobs_are_done(files, filename='log.log', waiting_time=10):
     
     done=False
     while done==False:
@@ -36,19 +41,24 @@ def all_jobs_are_done(files, filename='done.txt', waiting_time=10):
 if __name__=='__main__':
     
     if len(sys.argv)<4:
-        print 'python', sys.argv[0], '[corpus_file] [beta_file] [alpha_file]'
-        print '# jobs is set to:', jobs_square_root
-        print 'open this file to change the #jobs'
+        print 'python', sys.argv[0], '[corpus_file] [initial_model] [no_jobs]'
         exit()
-        
-    # no. jobs needed is jobs_square_root**2
-    jobs_square_root = 3
+    
+    
+    corpus_file=sys.argv[1]
+    model_file=sys.argv[2]
+    no_jobs= int(sys.argv[3])
 
-    for i in range(jobs_square_root):
+    for i in range(no_jobs):
         print 'job::', i
         new_folder='parallel_lda_'+str(i)
         os.system('mkdir '+new_folder)
     
+    # slicing corpus to folders
+    # how many docs?
+    os.system('wc '+sys.argv[1]+' > word_count.tmp')
+    no_docs = int(open('word_count.tmp').readlines()[-1].split()[0])
+    print 'no_docs', no_docs
     
     dones=glob.glob('parallel_lda_*')
     
@@ -57,11 +67,11 @@ if __name__=='__main__':
     while condition:
         
         
-        for folders:
+        for s in folders:
             # move to folder
             # E step
-            os.system('./bin/topicmap -f 'datasets'  -infer -model 'initialmodel' -alpha_file 'initialalpha' -word_wn word_wn_count.txt &')
-        
+            #os.system('./bin/topicmap -f 'datasets'  -infer -model 'initialmodel' -alpha_file 'initialalpha' -word_wn word_wn_count.txt &')
+            pass
         # this lets you wait until all jobs are done
         all_jobs_are_done(dones)
         # cat folders*/lda_class_words.txt > model.txt

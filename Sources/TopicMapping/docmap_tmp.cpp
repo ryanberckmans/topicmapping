@@ -94,8 +94,7 @@ int main(int argc, char * argv[]) {
                 P.int_ps.at("-lag"), \
                 P.string_ps.at("-alpha_file"));
     
-    cout<<"--done!--"<<endl;
-    
+
     return 0;
 }
 
