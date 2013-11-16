@@ -1,12 +1,12 @@
 
 # define LIK_precision 1e-5
 # define MAX_ITER 1000
-# define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
-# define VARGAMMA_precision 1e-6
+//# define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
+//# define VARGAMMA_precision 1e-6
 // use the following values if you do not want 
 // to use sparse data structures
-//# define DIGAMMA_precision -1000000000.
-//# define VARGAMMA_precision 0.
+# define DIGAMMA_precision -1000000000.
+# define VARGAMMA_precision 0.
 # define SMALL_LOG -100
 
 

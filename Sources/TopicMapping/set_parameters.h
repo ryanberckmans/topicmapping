@@ -137,8 +137,9 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 			
 			bool_ps[temp]= !bool_ps[temp];
 		} else {
-			cerr<<temp<<" is an unknown flag!\n\n"<<endl;
 			error_statement(argv);
+            cerr<<"ERROR:: "<<temp<<" is an unknown flag!\n\n"<<endl;
+
 		}
 		
 		/***************** find what temp is *****************/
@@ -153,8 +154,8 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 void parameters::required_flags_are_set(char * argv[]) {
 	
 	if(required_flags.size()!=0) {		
-		cerr<<"flag "<<*required_flags.begin()<<" needs to be set\n\n\n"<<endl;
 		error_statement(argv);
+		cerr<<"ERROR:: flag "<<*required_flags.begin()<<" needs to be set\n\n\n"<<endl;
 	}
 
 }
