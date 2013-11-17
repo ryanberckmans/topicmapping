@@ -156,6 +156,7 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
         ofstream sigout(outfile);
         RANGE_loop(i, links1)
             sigout<<links1[i]<<" "<<links2[i]<<" "<<weights[i]<<endl;
+        sigout.close();
     }
 
 }

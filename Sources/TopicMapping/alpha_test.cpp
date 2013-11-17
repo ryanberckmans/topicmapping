@@ -18,7 +18,7 @@ int main(int argc, char * argv[]) {
         cast_string_to_doubles(gins, ginv);
         prs.push_back(ginv);
     }
-    
+    gin.close();
     //printm(prs);
     
     cout<<"size:: "<<prs.size()<<endl;

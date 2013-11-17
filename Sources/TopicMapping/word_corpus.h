@@ -108,7 +108,7 @@ private:
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
-    double E_step(ostream & likout, bool verbose);
+    double E_step(bool verbose);
     double run_em();
     double run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag);
     void set_class_words_to_zeros_map();
@@ -128,7 +128,9 @@ private:
                                                double & digsum, \
                                                const double & sum_alphas);
     double compute_likelihood_alpha_terms(double & sum_alphas);
-    double lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha);
+    double lda_inference_sparse(int doc_number, const double & sum_alphas,\
+                                const double & likelihood_alpha,\
+                                bool print_assignments, ostream & asgout);
     
     void print_lda_results();
     void print_betas(string outfile);

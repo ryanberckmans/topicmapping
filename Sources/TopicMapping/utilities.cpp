@@ -19,6 +19,7 @@ void print_matrix_to_file_or_screen(deque<DD> & matrix, string filename) {
     else {
         ofstream pout(filename.c_str());
         printm(matrix, pout);
+        pout.close();
     }
     
 }
@@ -291,7 +292,7 @@ void read_topic_model_from_file(string infile, map<int, mapid> & topic_word) {
             }
         }
     }
-    
+    gin.close();
     // asserting topics are consecutive
     DI all_topics;    
     for(map<int, mapid>::iterator itm = topic_word.begin(); itm!=topic_word.end(); itm++) {

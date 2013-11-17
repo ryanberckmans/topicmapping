@@ -30,11 +30,13 @@ int main(int argc, char * argv[]) {
         size=vs.size();
         gammas.push_back(vs);
     }
+    gin.close();
     
     DD alphas;
     optimize_alpha(gammas, alphas);
     ofstream pout("alphas.txt");
     prints(alphas, pout);
+    pout.close();
     
     
 

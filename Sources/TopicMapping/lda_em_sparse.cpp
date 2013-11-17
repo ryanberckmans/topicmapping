@@ -42,7 +42,9 @@ double word_corpus::compute_likelihood_sparse_constants(int doc_number, \
     
 }
 
-double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alphas, const double & likelihood_alpha) {
+double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alphas,\
+                                         const double & likelihood_alpha,\
+                                         bool print_assignments, ostream & asgout) {
     
     
     /*
@@ -228,6 +230,28 @@ double word_corpus::lda_inference_sparse(int doc_number, const double & sum_alph
     
     
     if(verbose) cout<<"=========doc topic space: "<<var_gamma.size()<<endl;
+        
+    if(print_assignments) {
+        
+        // writing word assignments for this document
+        IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
+            deqid & phis_ldav_map_wn= phis_ldav_map_[wn_occ->first];            
+            // loop over topics for this word
+            int best_topic=-1;  // topics are all positive
+            double best_prob=0.;
+            IT_loop(deqid, topic_pr, phis_ldav_map_wn) {
+                if(best_topic==-1 or topic_pr->second>best_prob) {
+                    best_topic=topic_pr->first;
+                    best_prob=topic_pr->second;
+                }
+            }
+            // wn word_str occ topic
+            asgout<<wn_occ->first<<" "<<word_strings_.at(wn_occ->first)<<" ";
+            asgout<<wn_occ->second<<" "<<best_topic<<" ";
+        }
+        asgout<<endl;
+    //
+    }
 
     return likelihood;
 }
@@ -287,12 +311,18 @@ double word_corpus::compute_likelihood_alpha_terms(double & sum_alphas) {
 }
 
 
-double word_corpus::E_step(ostream & likout, bool verbose) {
+double word_corpus::E_step(bool verbose) {
     
     
     // performing E step and returning likelihood
     // if verbose, write likelihood of each doc to a file
-
+    ofstream likout;
+    ofstream asgout;
+    if(verbose) {
+        likout.open("lda_log_likelihood_per_doc.txt");
+        asgout.open("lda_word_assignments.txt");
+        cout<<"final E step"<<endl;
+    }
     double sum_alphas=0.;
     double likelihood_alpha = compute_likelihood_alpha_terms(sum_alphas);
     
@@ -302,13 +332,17 @@ double word_corpus::E_step(ostream & likout, bool verbose) {
     RANGE_loop(doc_number, docs_) {
         if (doc_number%10000==0 and doc_number>0)
             cout<<"running lda E-step for doc "<<doc_number<<endl;
-        double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, likelihood_alpha);
+        double likelihood_doc = lda_inference_sparse(doc_number, sum_alphas, \
+                                                     likelihood_alpha,\
+                                                     verbose, asgout);
         // writing likelihood of this doc to file
         if(verbose)
             likout<<likelihood_doc<<endl;
         likelihood_all+=likelihood_doc;
         
     }
+    asgout.close();
+    likout.close();
     return likelihood_all;
     
     
@@ -320,7 +354,6 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     
     cout<<"running EM"<<endl;    
     
-    ofstream likout("lda_log_likelihood_per_doc.txt");    
     ofstream likvalue("lda_log_likelihood.txt");    
     double likelihood_old=-1e300;
     // these are the variational parameters
@@ -332,7 +365,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         ++iter;
         // E step
         cout<<"E step "<<iter<<endl;
-        double likelihood_all = E_step(likout, false);
+        double likelihood_all = E_step(false);
 
         // M step
         // optimizing betas
@@ -366,10 +399,12 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     }
     
     
-    cout<<"final E step"<<endl;
-    double likelihood_all = E_step(likout, true);
+    //final E step
+    double likelihood_all = E_step(true);
+
     cout<<"log likelihood "<<likelihood_all<<endl;
     likvalue<<iter+1<<" "<<likelihood_all<<endl;
+    likvalue.close();
     print_lda_results();
     
     // printing lda_class_words (just at the very end)
@@ -389,6 +424,7 @@ void word_corpus::print_lda_results() {
     compute_non_sparse_gammas(gammas_ldav);    
     ofstream pout_final("lda_gammas.txt");
     printm(gammas_ldav, pout_final);
+    pout_final.close();
     
     map<int, mapid> topic_word;
     from_beta_to_topic_word(betas_ldav_map_, topic_word);

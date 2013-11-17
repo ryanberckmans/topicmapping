@@ -51,3 +51,5 @@ topicmap4nov
 run_test_infer.sh
 opt_alpha
 edges2pajek
+cop
+*.cop

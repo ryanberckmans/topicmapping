@@ -252,6 +252,7 @@ double word_corpus::run_em() {
     
     ofstream pout_final("lda_gammas.txt");
     printm(gammas_ldav_, pout_final);
+    pout_final.close();
     
     return 0.;
 }

@@ -27,6 +27,7 @@ void word_corpus::set_from_file(string filename) {
             exit(-1);
         }
 	}
+    gin.close();
 	
 	int total_words=0;
 	IT_loop(mapii, itm, wn_occurences__all) {			
@@ -39,7 +40,7 @@ void word_corpus::set_from_file(string filename) {
 	for(multimap<int, int>::iterator itm=occurences_wn.begin(); itm!=occurences_wn.end(); itm++) {			
 		pout<<number_word_all[itm->second]<<" "<<itm->second<<" "<<itm->first<<endl;
 	}
-    
+    pout.close();
     
     
     // word_occurrences_ is copied from wn_occurences__all
@@ -126,7 +127,6 @@ void word_corpus::set_from_file(string filename, string wn_file) {
 void word_corpus::write_corpus_file() {
 	
 	ofstream pout("CORPUS.corpus");
-	
 	RANGE_loop(i, docs_) {
 		
 		pout<<docs_[i].wn_occs_.size()<<" ";
@@ -135,6 +135,7 @@ void word_corpus::write_corpus_file() {
 		}
 		pout<<endl;
 	}
+    pout.close();
 }
 
 
@@ -205,6 +206,7 @@ void word_corpus::write_theta_file(deque<mapid> & doc_topic,\
         }
         pout1<<endl;
     }
+    pout1.close();
 }
 
 

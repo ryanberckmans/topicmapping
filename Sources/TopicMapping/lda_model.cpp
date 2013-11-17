@@ -50,6 +50,7 @@ void word_corpus::initialize_lda_data(map<int, mapid> & topic_word,\
         getline(gin, gins);
         cast_string_to_doubles(gins, alphas_ldav_);
         assert_ints(num_topics_ldav_, int(alphas_ldav_.size()), "ERROR with alpha size");
+        gin.close();
     }
 
     cout<<"number of topics for LDA:: "<<num_topics_ldav_<<endl;    
@@ -122,6 +123,7 @@ void word_corpus::print_betas(string outfile) {
         pout<<"wn:: "<<wn<<endl;
         prints(betas_ldav_map_[wn], pout);
     }
+    pout.close();
     
 }
 
