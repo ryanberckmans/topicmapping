@@ -75,6 +75,7 @@ int main(int argc, char * argv[]) {
     for(map<pair<int, int>, double>::iterator itm=edges.begin(); itm!=edges.end(); itm++) {
         pout<<itm->first.first+1<<" "<<itm->first.second+1<<" "<<itm->second<<endl;
     }
+    pout.close();
     
     return 0;
 }
