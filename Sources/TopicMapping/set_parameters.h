@@ -89,7 +89,6 @@ void parameters::error_statement(char * argv[]) {
     cerr<<endl<<"Basic example: "<<endl;
     cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -t 100"<<endl;
     cerr<<"Please look at ReadMe.pdf for more info."<<endl;
-	exit(-1);
 }
 
 
@@ -97,9 +96,10 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 	
 	int i=1;
 	
-	if(i==argc)
-		return error_statement(argv);
-	
+	if(i==argc) {
+        error_statement(argv);
+        exit(-1);
+    }
 	while(i<argc) {
 		
 		string temp(argv[i]);
@@ -112,24 +112,30 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 		if(double_ps.find(temp)!=double_ps.end()) {
 			
 			++i;
-			if(i==argc)
+			if(i==argc) {
 				error_statement(argv);
+                exit(-1);
+            }
 			string temp2(argv[i]);
 			double_ps[temp]=cast_string_to_double(temp2);
 			
 		} else if(int_ps.find(temp)!=int_ps.end()) {
 			
 			++i;
-			if(i==argc)
+			if(i==argc) {
 				error_statement(argv);
+                exit(-1);
+            }
 			string temp2(argv[i]);
 			int_ps[temp]=cast_int(cast_string_to_double(temp2));
 			
 		} else if(string_ps.find(temp)!=string_ps.end()) {
 			
 			++i;
-			if(i==argc)
+			if(i==argc) {
 				error_statement(argv);
+                exit(-1);
+            }
 			string temp2(argv[i]);
 			string_ps[temp]=temp2;
 			
@@ -139,7 +145,7 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 		} else {
 			error_statement(argv);
             cerr<<"ERROR:: "<<temp<<" is an unknown flag!\n\n"<<endl;
-
+            exit(-1);
 		}
 		
 		/***************** find what temp is *****************/
@@ -156,6 +162,7 @@ void parameters::required_flags_are_set(char * argv[]) {
 	if(required_flags.size()!=0) {		
 		error_statement(argv);
 		cerr<<"ERROR:: flag "<<*required_flags.begin()<<" needs to be set\n\n\n"<<endl;
+        exit(-1);
 	}
 
 }

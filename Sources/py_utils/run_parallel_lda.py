@@ -41,6 +41,8 @@ def slice_docs(no_docs, no_jobs):
 
 def split_docs_in_folders(corpus_file, folders, no_docs, no_jobs):
     '''
+        writes smaller corpora
+        in folders
     '''
     ranges=slice_docs(no_docs, no_jobs)
     print 'docs in folders:', ranges
@@ -80,6 +82,13 @@ def get_likelihoods(folders, filename='lda_log_likelihood.txt'):
 
 def all_jobs_are_done(files, waiting_time, filename='log.log'):
     
+    '''
+        waits until 
+        '--done!--'
+        appears in all 'files/filename'
+        waiting_time is simply 
+        how often to check
+    '''
     done=False
     while done==False:
         done=True
@@ -130,7 +139,7 @@ if __name__=='__main__':
     #========= default parameters ===============
     initial_alpha=0.01
     option_t='-t 100'
-    #secs between checks that all jobs are done
+    #secs between checks until all_jobs_are_done
     waiting_time=3
     # waits these seconds for files to be closed
     writing_time=2
