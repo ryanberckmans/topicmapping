@@ -32,6 +32,7 @@ void doc::set_from_string_given_wn(string s, mapsi & word_wn_all) {
 	mapii wn_occurences;
     int num_words=0;
 	RANGE_loop(i, tokens) {
+        // skips words which are not in word_wn_all (not in training set)
         if(word_wn_all.count(tokens[i])>0) {
             int_histogram(word_wn_all[tokens[i]], wn_occurences);
             ++num_words;	

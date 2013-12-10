@@ -53,3 +53,4 @@ opt_alpha
 edges2pajek
 cop
 *.cop
+show_topic_info

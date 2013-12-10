@@ -1,12 +1,12 @@
 
 # define LIK_precision 1e-5
 # define MAX_ITER 1000
-//# define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
-//# define VARGAMMA_precision 1e-6
+# define DIGAMMA_precision -14.     // exp(-14) ~ 1e-6
+# define VARGAMMA_precision 1e-6
 // use the following values if you do not want 
 // to use sparse data structures
-# define DIGAMMA_precision -1000000000.
-# define VARGAMMA_precision 0.
+//# define DIGAMMA_precision -1000000000.
+//# define VARGAMMA_precision 0.
 # define SMALL_LOG -100
 
 
@@ -410,11 +410,14 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
     // printing lda_class_words (just at the very end)
     map<int, mapid> topic_word;
     from_class_to_topic_word(class_word_ldav_map_, topic_word, false);
-    print_topic_sparse_format(topic_word, "lda_class_words.txt");
+    print_topic_sparse_format_short(topic_word, "lda_class_words.txt");
     
 
     return 0.;
 }
+
+
+
 
 
 void word_corpus::print_lda_results() {
@@ -428,9 +431,16 @@ void word_corpus::print_lda_results() {
     
     map<int, mapid> topic_word;
     from_beta_to_topic_word(betas_ldav_map_, topic_word);
+    
+    DD ptopic;
+    int num_words_shown=100;
+    // p(topic)
+    get_ptopic_distr(ptopic, gammas_ldav);
+    
     cout<<"topics printed: "<<topic_word.size()<<" words: "<<betas_ldav_map_.size()<<endl;
-    print_topic_sparse_format(topic_word, "lda_betas_sparse.txt",\
-                              "lda_summary.txt", word_strings_);
+    print_topic_sparse_format_complete(topic_word, "lda_betas_sparse.txt",\
+                                       "lda_summary.txt", word_strings_, \
+                                       ptopic, num_words_shown);
     
     ofstream alpha_out("lda_alphas.txt");
     prints(alphas_ldav_, alpha_out);

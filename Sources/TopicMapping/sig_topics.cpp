@@ -35,7 +35,7 @@ void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int
 	RANGE_loop(doc_number, docs_) {
         
         if(doc_number%1000==0 and doc_number!=0){
-            cout<<"computing connected words:: "<<doc_number<<endl;
+            cout<<"computing connected words... docs processed::  "<<doc_number<<endl;
         }
         deqii & wn_occs_doc_orig= docs_[doc_number].wn_occs_;
         

@@ -198,7 +198,7 @@ void word_corpus::write_theta_file(deque<mapid> & doc_topic,\
     RANGE_loop(i, docs_) {
         IT_loop(mapii, itm, topic_names) {
             if(doc_topic[i].count(itm->second)>0) {
-                pout1<<doc_topic[i][itm->second]<<" ";
+                pout1<<doc_topic[i][itm->second] * docs_[i].num_words_<<" ";
             }
             else {
                 pout1<<"0 ";
@@ -249,8 +249,22 @@ void word_corpus::write_short_beta_and_theta_files(deque<mapid> & doc_topic,
     }
     pout1.close();
     
+    // gammas[doc][topic] is how many words in doc come from topic
+    deque<DD> gammas;
+    RANGE_loop(i, doc_topic) {
+        DD vs;
+        vs.assign(topic_names.size(), 0.);
+        IT_loop(mapid, itm, doc_topic[i]) {
+            vs[itm->first]=itm->second * docs_[i].num_words_;
+        }
+        gammas.push_back(vs);
+    }
+    
+    DD ptopic;
+    get_ptopic_distr(ptopic, gammas);
     // writing topics in sparse format
-    print_topic_sparse_format(topic_word, beta_file, beta_file_short, word_strings_);
+    print_topic_sparse_format_complete(topic_word, beta_file, beta_file_short, \
+                                       word_strings_, ptopic, 100);
 
 }
 

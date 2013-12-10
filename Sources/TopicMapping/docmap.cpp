@@ -35,11 +35,13 @@ int main(int argc, char * argv[]) {
     } else {
         C.set_from_file(P.string_ps.at("-f"), P.string_ps.at("-word_wn"));        
     }
-    cout<<"corpus was set"<<endl;
+    cout<<"corpus set."<<endl;
     
     if(P.bool_ps.at("-corpus")) {
         cout<<"writing corpus file CORPUS.corpus"<<endl;
         C.write_corpus_file();
+        cout<<"exiting..."<<endl;
+        return 0;
     }
     
     if(P.string_ps.at("-parall").size()!=0) {
@@ -51,7 +53,10 @@ int main(int argc, char * argv[]) {
     // topic_word[topic][word] is p(w|t)
     map<int, mapid> topic_word;
 
-    if(P.string_ps.at("-model").size()==0) {
+    if(P.int_ps.at("-random")>1) {
+        cout<<"random model as initial conditions"<<endl;
+        draw_a_random_model(topic_word, P.int_ps.at("-random"), C.get_num_terms());    
+    } else if(P.string_ps.at("-model").size()==0) {
         
         /*
          getting initial guess from Infomap

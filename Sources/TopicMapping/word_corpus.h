@@ -6,7 +6,7 @@ typedef map<int, mapid> mapimapid;
 
 // values below this threshold are 
 // not included in betas
-# define SPARSE_limit 0
+#define SPARSE_limit 0
 
 #include "degree_block.cpp"
 #include "utilities.cpp"
@@ -45,6 +45,10 @@ public:
     void set_from_file(string filename, string wn_file);
 	void write_corpus_file();
 
+
+    // getters
+    int get_num_terms() { return int(word_occurrences_.size()); };
+
     // computing the network
     void null_model(string parall_str);
     void write_theta_file(deque<mapid> & doc_topic,\
@@ -68,7 +72,6 @@ public:
                      bool skip_alpha_opt, \
                      bool infer_flag, int print_lag,\
                      string alpha_file);
-
     
 private:
     
@@ -95,7 +98,9 @@ private:
                               map<int, mapii> & word_topic, deque<mapid> & doc_topic);
     double likelihood_filter(map<int, mapii> & word_topic, deque<mapid> & doc_topic, \
                              map<int, mapid> & topic_word, mapid & pt, \
-                             const mapii & hard_mems, double filtering_par, const DI & doc_prevalent_topics);
+                             const mapii & hard_mems, \
+                             double filtering_par, const DI & doc_prevalent_topics,\
+                             deque<mapii> & doc_assignments);
     void get_rid_of_non_prevalent_topics(mapii & hard_mems, DI & doc_prevalent_topics);
     void get_prevalent_topics(DI & doc_prevalent_topics, mapii & hard_mems);
     double optimal_filtering(mapii & hard_mems, \

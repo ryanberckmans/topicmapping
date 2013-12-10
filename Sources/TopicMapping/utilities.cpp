@@ -46,7 +46,7 @@ int max_element_mapid(mapid & m) {
 
 void make_topic_names_consecutive(deque<mapid> & doc_topic, \
                                   map<int, mapid> & topic_word, \
-                                  mapid & pt) {
+                                  deque<mapii> & doc_assignments, mapid & pt) {
     
     // for each topic, I use consecutive names
     mapii old_to_new_labels;
@@ -71,7 +71,15 @@ void make_topic_names_consecutive(deque<mapid> & doc_topic, \
         new_topic_word.insert(make_pair(old_to_new_labels.at(itm->first), itm->second));
     }
     topic_word= new_topic_word;
+    
+    // fixing doc_assignments
+    RANGE_loop(i, doc_assignments) {        
+        IT_loop(mapii, itm, doc_assignments[i]) {
+            itm->second=old_to_new_labels.at(itm->second);
+        }
+    }
 
+    
     // fixing pt
     mapid new_pt;
     for(mapid::iterator itm = pt.begin(); itm!=pt.end(); itm++) {
@@ -206,17 +214,21 @@ void from_topic_word_to_beta(map<int, mapid> & topic_word, deque<mapid> & beta_k
 }
 
 
-void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile,\
-                               string outfile_short, const deque<string> & word_strings) {
+
+void print_topic_sparse_format_complete(map<int, mapid> & topic_word, string outfile,\
+                                        string outfile_short, const deque<string> & word_strings,
+                                        DD & ptopic, int num_words_shown) {
     
     // writes print_topic_sparse_format
     
+    if(outfile_short.size()>0 and word_strings.size()>0 and ptopic.size()>0)
+        cout<<"printing results. summary can be found in: "<<outfile_short<<endl;
     ofstream pout1;
     ofstream pout2;
     
     pout1.open(outfile.c_str());
     // the file is opened only if outfile_short and word_strings are provided
-    if(outfile_short.size()>0 and word_strings.size()>0) {
+    if(outfile_short.size()>0 and word_strings.size()>0 and ptopic.size()>0) {
         pout2.open(outfile_short.c_str());
     }
     for (map<int, mapid>::iterator topic_itm= topic_word.begin(); 
@@ -228,11 +240,13 @@ void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile,\
             pr_word.push_back(make_pair(-itm2->second, itm2->first));
         }
         sort(pr_word.begin(), pr_word.end());
-        if(pout2.is_open()) pout2<<"topic: "<<topic_itm->first<<" #words: "<<pr_word.size()<<endl;
+        if(pout2.is_open()) {
+            pout2<<"topic: "<<topic_itm->first<<" #words: "<<pr_word.size()<<" pt: "<<ptopic[topic_itm->first]<<endl;
+        }
         pout1<<topic_itm->first<<" ";
         RANGE_loop(i, pr_word) {
             pout1<<pr_word[i].second<<" "<<-pr_word[i].first<<" ";
-            if (i<20 and pout2.is_open()) {
+            if (int(i)<num_words_shown and pout2.is_open()) {
                 pout2<<word_strings.at(pr_word[i].second)<<" ";
             } 
         }
@@ -245,12 +259,28 @@ void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile,\
 }
 
 
-void print_topic_sparse_format(map<int, mapid> & topic_word, string outfile) {
+
+void print_topic_sparse_format_short(map<int, mapid> & topic_word, string outfile) {
     
     string outfile_short;
     deque<string> word_strings;
-    print_topic_sparse_format(topic_word, outfile, outfile_short, word_strings);
+    DD ptopic;
+    print_topic_sparse_format_complete(topic_word, outfile, outfile_short, word_strings, ptopic, 0);
 }
+
+
+
+void draw_a_random_model(map<int, mapid> & topic_word, int K, int num_terms) {
+    topic_word.clear();
+    for(int k=0; k<K; k++) {
+        mapid new_mapid;
+        for(int wn=0; wn<num_terms; wn++) {
+            new_mapid[wn]=1./num_terms+ran4();
+        }
+        normalize_mapid(new_mapid);
+        topic_word[k]=new_mapid;
+    }
+}    
 
 
 void read_topic_model_from_file(string infile, map<int, mapid> & topic_word) {
@@ -310,4 +340,26 @@ void read_topic_model_from_file(string infile, map<int, mapid> & topic_word) {
 }
 
 
+
+void get_ptopic_distr(DD & ptopic, const deque<DD> & gammas) {
+    
+    // ptopic(t) ~ sum_doc gammas[doc][t]
+    
+    int size=-1;
+    ptopic.clear();
+    RANGE_loop(doc, gammas) {
+        const DD & vs = gammas[doc];
+        
+        general_assert(size==-1 or int(vs.size())==size, \
+                       "ERROR: gammas should all have same length");
+        if(size==-1) {
+            RANGE_loop(t, vs) ptopic.push_back(vs[t]);
+        } else {
+            RANGE_loop(t, vs) ptopic[t]+=vs[t];
+        }
+        if(size==-1)
+            size=vs.size();
+    }
+    normalize_one(ptopic);
+}
 

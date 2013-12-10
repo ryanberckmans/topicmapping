@@ -38,7 +38,7 @@ if __name__=='__main__':
             new_folder='parallel_'+str(i)+'_'+str(j)+'_'+str(jobs_square_root)
             os.system('mkdir '+new_folder)
             os.chdir(new_folder)
-            os.system(topicmap_path+' -p '+str(pvalue)+' -f ../'+sys.argv[1]+' -parall '+str(i)+\
+            os.system(topicmap_path+' -t 0 -p '+str(pvalue)+' -f ../'+sys.argv[1]+' -parall '+str(i)+\
                       ':'+str(j)+':'+str(jobs_square_root)+' > parall.log &\n')
             
             # waiting a few minutes before running another job

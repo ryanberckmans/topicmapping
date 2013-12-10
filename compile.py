@@ -29,6 +29,10 @@ os.system('g++ -O3 -funroll-loops -Wall -o bin/edges2pajek ./Sources/SingleSlice
 print 'compiling partition converted'
 os.system('g++ -O3 -funroll-loops -Wall -o bin/tree2part ./Sources/SingleSliceInfomap/get_partition.cpp')
 
+print 'compiling show topic info'
+os.system('g++ -O3 -funroll-loops -Wall -o bin/show_topic_info ./Sources/TopicMapping/show_topic_info.cpp')
+
+
 
 infomap_path= cur_dir+'/bin/Infomap'
 

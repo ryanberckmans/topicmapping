@@ -114,6 +114,7 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 			++i;
 			if(i==argc) {
 				error_statement(argv);
+                cerr<<"ERROR:: "<<temp<<" should be followed by a number (float)\n\n"<<endl;
                 exit(-1);
             }
 			string temp2(argv[i]);
@@ -124,6 +125,7 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 			++i;
 			if(i==argc) {
 				error_statement(argv);
+                cerr<<"ERROR:: "<<temp<<" should be followed by a number (int)\n\n"<<endl;
                 exit(-1);
             }
 			string temp2(argv[i]);
@@ -134,6 +136,7 @@ void parameters::set_from_argv(int argc, char * argv[]) {
 			++i;
 			if(i==argc) {
 				error_statement(argv);
+                cerr<<"ERROR:: "<<temp<<" should be followed by a string\n\n"<<endl;
                 exit(-1);
             }
 			string temp2(argv[i]);
@@ -201,13 +204,13 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
     P.set_int("-t", 0, true, "[int]: minimum number of documents per topic. 10 is recommended for fairly large datasets (more than 1000 documents)");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
-    P.set_double("-maxf", 0.55, false, "[double] maximum value for the likelihood filter.");
+    P.set_double("-maxf", 0.51, false, "[double] maximum value for the likelihood filter.");
     P.set_double("-alpha", 0.01, false, "[double] initial value of alpha. Default is 0.01");
     P.set_double("-step", 0.01, false, "[double] step in PLSA filtering.");
 	P.set_int("-seed", -1, false, "[int]: seed for random number generator. default is read from file time_seed.dat.");
 	P.set_string("-part", "", false, "[string]: a file like \"infomap.part\" saved from a previous run.");
     P.set_bool("-skip_opt_al", false, false, " : use this option to skip alpha optimization");
-    P.set_string("-model", "", false, "[string]: a file like \"topic_words.txt\" saved from a previous run");
+    P.set_string("-model", "", false, "[string]: a file like \"lda_betas_sparse.txt\" saved from a previous run");
     P.set_string("-word_wn", "", false, "[string]: a file like \"word_wn_count.txt\"");
     P.set_string("-alpha_file", "", false, "[string]: a file like \"alphas.txt\" for setting the initial alphas.");
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
@@ -215,6 +218,8 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
     P.set_int("-lag", 20, false, "[int] : lda model is printed every [-lag] EM steps.");
     P.set_bool("-corpus", false, false, " : writes dataset in .corpus format.");
+    P.set_int("-random", -1, false, "[int= K] : skips infomap and starts from a random model with K topics.");
+    P.set_bool("-skip_lda", false, false, " : skip lda optimization");
     
 	P.set_from_argv(argc, argv);
 	P.printing(cout);
@@ -250,7 +255,12 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
         cout<<"ERROR: selecting -alpha_file requires options -model "<<endl;
         exit(-1);
     }
-    
+
+    if(P.int_ps.at("-random")>1 and P.string_ps.at("-model").size()!=0) {
+        cout<<"ERROR: you cannot select -random and -model together"<<endl;
+        exit(-1);
+    }
+
 
 
 }
