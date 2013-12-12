@@ -15,6 +15,11 @@ import math
 import time
 from time import gmtime, strftime
 
+file_dir= os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+bin_path=file_dir+'/../../bin/'
+cur_folder=os.getcwd()
+
+
 
 def update_activity(activity, first=False):
     
@@ -74,7 +79,7 @@ def split_docs_in_folders(corpus_file, folders, no_docs, no_jobs):
     print 'done with copying docs. Docs copied::', doc_counter
 
 
-def get_likelihoods(folders, filename='lda_log_likelihood.txt'):
+def get_likelihoods(folders, filename='results/lda_log_likelihood.txt'):
     
     tot_lik=0.
     for f in folders:
@@ -182,7 +187,7 @@ if __name__=='__main__':
     # writing alpha
     alpha_file=open('alphas.txt', 'w')
     for i in xrange(no_topics):
-        alpha_file.write('0.01 ')
+        alpha_file.write(str(initial_alpha)+' ')
     alpha_file.write('\n')
     alpha_file.close()
 
@@ -200,14 +205,17 @@ if __name__=='__main__':
         for f in folders:
             # move to folder
             # E step
-            os.chdir(f)
-            command_line='nohup topicmap -f sliced_corpus.txt -infer -model ../'+\
+            os.chdir(cur_folder+'/'+f)
+            os.system('rm log.log')
+            command_line='nohup '+bin_path+'/topicmap -o results -f sliced_corpus.txt -infer -model ../'+\
                           model_file+' -alpha_file ../alphas.txt -word_wn ../'+\
                           word_wn_file+' '+option_t+' > log.log &'
             #print 'running::', command_line
             os.system(command_line)
-            os.chdir('../')
         
+        
+        # back to cur_folder
+        os.chdir(cur_folder)
         time.sleep(writing_time)
         
         # this lets you wait until all jobs are done
@@ -218,12 +226,12 @@ if __name__=='__main__':
         lik=get_likelihoods(folders)
         
         # collecting
-        collect_from_folders(folders, 'lda_class_words.txt', 'model.txt')
-        collect_from_folders(folders, 'lda_gammas.txt', 'all_gammas.txt')
+        collect_from_folders(folders, 'results/lda_class_words.txt', 'model.txt')
+        collect_from_folders(folders, 'results/lda_gammas_final.txt', 'all_gammas.txt')
         time.sleep(writing_time)
         
         # optimizing alpha
-        os.system('opt_alpha all_gammas.txt')
+        os.system(bin_path+'/opt_alpha all_gammas.txt')
         time.sleep(writing_time)
     
         # updates file name and counter
@@ -235,11 +243,16 @@ if __name__=='__main__':
         update_activity('likelihood:: '+str(lik)+' prev:: '+\
                         str(old_lik)+' iter:: '+str(iter))
         likout.write(str(iter)+' '+str(lik)+'\n')
+        
+        # saving model
+        os.system('cp model.txt model_'+str(iter))
+        os.system('cp all_gammas.txt all_gammas_'+str(iter))
+
         if math.fabs((lik-old_lik)/old_lik)<1e-5 or lik<old_lik:
             break
         old_lik=lik
         
-    collect_from_folders(folders, 'lda_word_assignments.txt', 'all_word_assignments.txt')
+    collect_from_folders(folders, 'results/lda_word_assignments_final.txt', 'all_word_assignments.txt')
 
     likout.close()
     print 'done'

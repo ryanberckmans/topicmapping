@@ -43,7 +43,7 @@ public:
     // setting the corpus
 	void set_from_file_first_time(string filename, string out_dir);
     void set_from_file(string filename, string wn_file);
-	void write_corpus_file();
+	void write_corpus_file(string out_dir);
 
 
     // getters
@@ -114,7 +114,7 @@ private:
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
-    double E_step(bool verbose, string out_dir);
+    double E_step(bool verbose, string out_dir, int iter);
     double run_em();
     double run_em_sparse(bool skip_alpha_opt, bool infer_flag, \
                          int print_lag, string out_dir);

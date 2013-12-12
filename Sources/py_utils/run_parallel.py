@@ -38,23 +38,23 @@ if __name__=='__main__':
             new_folder='parallel_'+str(i)+'_'+str(j)+'_'+str(jobs_square_root)
             os.system('mkdir '+new_folder)
             os.chdir(new_folder)
-            os.system(topicmap_path+' -t 0 -p '+str(pvalue)+' -f ../'+sys.argv[1]+' -parall '+str(i)+\
+            os.system(topicmap_path+' -t 0 -o results -p '+str(pvalue)+' -f ../'+sys.argv[1]+' -parall '+str(i)+\
                       ':'+str(j)+':'+str(jobs_square_root)+' > parall.log &\n')
             
             # waiting a few minutes before running another job
-            time.sleep(30*60)
+            time.sleep(0*60)
             os.chdir(working_dir)
     
     print 'when jobs will be done, you can collect the networks with:'
-    print '>>> cat parallel_*/sig_words*.edges > sig_words.edges'
+    print '>>> cat parallel_*/results/sig_words*.edges > sig_words.edges'
     print 'Write the network in pajek format with:'
     print '>>> ./bin/edges2pajek sig_words.edges'
     print '>>> mkdir sig_words_results/'
     print 'Run Infomap with:'
-    print './bin/Infomap pajek.net sig_words_results/ --two-level --undirected --num-trials 10 --seed 10 > infomap.log'
+    print '>>> ./bin/Infomap pajek.net sig_words_results/ --two-level --undirected --num-trials 10 --seed 10 > infomap.log'
     print 'Get partition in .part format with:'
     print '>>> ./bin/tree2part sig_words_results/pajek.tree word_wn_count.txt 100'
-    print 'File "word_wn_count.txt" can be found in each parallel_* folder (they are all identical).'
+    print 'File "word_wn_count.txt" can be found in each parallel_*/results folder (they are all identical).'
     print 'Now the first step is done. You can now run topicmap with option -part infomap.part'
     
     

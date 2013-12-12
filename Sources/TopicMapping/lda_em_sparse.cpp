@@ -311,16 +311,29 @@ double word_corpus::compute_likelihood_alpha_terms(double & sum_alphas) {
 }
 
 
-double word_corpus::E_step(bool verbose, string out_dir) {
+double word_corpus::E_step(bool verbose, string out_dir, int iter) {
     
     
     // performing E step and returning likelihood
     // if verbose, write likelihood of each doc to a file
+    
+    
+    string iter_s;
+    if (iter<0) {
+        iter_s="final";
+    } else{
+        char iter_c[100];
+        sprintf(iter_c, "%d", iter);
+        iter_s=string(iter_c);
+    }
+
+    
+    
     ofstream likout;
     ofstream asgout;
     if(verbose) {
-        likout.open((out_dir+"/lda_log_likelihood_per_doc.txt").c_str());
-        asgout.open((out_dir+"/lda_word_assignments.txt").c_str());
+        likout.open((out_dir+"/lda_log_likelihood_per_doc_"+iter_s+".txt").c_str());
+        asgout.open((out_dir+"/lda_word_assignments_"+iter_s+".txt").c_str());
         cout<<"final E step"<<endl;
     }
     double sum_alphas=0.;
@@ -366,7 +379,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag,\
         ++iter;
         // E step
         cout<<"E step "<<iter<<endl;
-        double likelihood_all = E_step(false, out_dir);
+        double likelihood_all = E_step(iter%print_lag==1, out_dir, iter);
 
         // M step
         // optimizing betas
@@ -401,7 +414,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag,\
     
     
     //final E step
-    double likelihood_all = E_step(true, out_dir);
+    double likelihood_all = E_step(true, out_dir, -1);
 
     cout<<"log likelihood "<<likelihood_all<<endl;
     likvalue<<iter+1<<" "<<likelihood_all<<endl;

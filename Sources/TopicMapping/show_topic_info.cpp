@@ -107,8 +107,6 @@ int main(int argc, char * argv[]) {
     if(argc<6) {
         cout<<argv[0]<<" [betas_sparse] [word_wn_count] [gammas] [num_words_shown] [topic_threshold]"<<endl;
         cout<<"provide general information about the model"<<endl;
-        cout<<"this program does not account for the length of documents if the "<<endl;
-        cout<<"input is plsa_thetas.txt"<<endl;
         return -1;
     }
     

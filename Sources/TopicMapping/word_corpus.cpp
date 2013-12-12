@@ -124,9 +124,9 @@ void word_corpus::set_from_file(string filename, string wn_file) {
 
 
 
-void word_corpus::write_corpus_file() {
+void word_corpus::write_corpus_file(string out_dir) {
 	
-	ofstream pout("CORPUS.corpus");
+	ofstream pout((out_dir+"/CORPUS.corpus").c_str());
 	RANGE_loop(i, docs_) {
 		
 		pout<<docs_[i].wn_occs_.size()<<" ";
