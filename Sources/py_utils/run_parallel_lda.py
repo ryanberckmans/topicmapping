@@ -1,4 +1,11 @@
 
+'''
+    same code as run_parallel_lda but 
+    without bin paths
+'''
+
+
+
 import sys
 import os
 import inspect
@@ -7,6 +14,11 @@ import glob
 import math
 import time
 from time import gmtime, strftime
+
+file_dir= os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+bin_path=file_dir+'/../../bin/'
+cur_folder=os.getcwd()
+
 
 
 def update_activity(activity, first=False):
@@ -67,14 +79,10 @@ def split_docs_in_folders(corpus_file, folders, no_docs, no_jobs):
     print 'done with copying docs. Docs copied::', doc_counter
 
 
-def get_likelihoods(folders, filename='lda_log_likelihood.txt'):
+def get_likelihoods(folders, filename='results/lda_log_likelihood.txt'):
     
     tot_lik=0.
     for f in folders:
-        #print ('cat '+f+'/'+filename)
-        #os.system('cat '+f+'/'+filename)
-        #print ('cat '+f+'/'+filename)
-        #os.system('cat '+f+'/'+filename)
         tot_lik+=float(open(f+'/'+filename).readlines()[-1].split()[-1])
     return tot_lik
     
@@ -103,7 +111,7 @@ def all_jobs_are_done(files, waiting_time, filename='log.log'):
             # we are done yet *somewhere*
             if last_word!='--done!--':
                 done=False
-                print 'not done yet in', f
+                #print 'not done yet in', f
 
         
         if done==False:
@@ -116,6 +124,14 @@ def get_lines(infile):
     no_lines = int(open('word_count.tmp').readlines()[-1].split()[0])
     return no_lines
 
+
+def collect_from_folders(folders, infile, outfile):
+    
+    outf=open(outfile, 'w')
+    for f in folders:
+        for l in open(f+'/'+infile):
+            outf.write(l)
+    outf.close()
 
 
 if __name__=='__main__':
@@ -138,22 +154,31 @@ if __name__=='__main__':
     update_activity('starting', True)
     #========= default parameters ===============
     initial_alpha=0.01
-    option_t='-t 100'
     #secs between checks until all_jobs_are_done
-    waiting_time=3
+    waiting_time=120
     # waits these seconds for files to be closed
-    writing_time=2
+    writing_time=30
     #========= default parameters ===============
+
+
+    # this option does not matter
+    option_t='-t 100'
+
 
     # deleting before starting
     os.system('rm -r parallel_lda_*')
 
+
+
     # creating folders
+    folders=[]
     for i in range(no_jobs):
         print 'job::', i
         new_folder='parallel_lda_'+str(i)
+        folders.append(new_folder)
         os.system('mkdir '+new_folder)
-    
+    print 'folders::', folders
+
     # how many docs?
     no_docs=get_lines(corpus_file)
     print 'No. docs', no_docs
@@ -162,12 +187,10 @@ if __name__=='__main__':
     # writing alpha
     alpha_file=open('alphas.txt', 'w')
     for i in xrange(no_topics):
-        alpha_file.write('0.01 ')
+        alpha_file.write(str(initial_alpha)+' ')
     alpha_file.write('\n')
     alpha_file.close()
-    # getting folders
-    folders=glob.glob('parallel_lda_*')
-    print 'folders::', folders
+
     # slicing corpus to folders
     split_docs_in_folders(corpus_file, folders, no_docs, no_jobs)
     
@@ -182,14 +205,18 @@ if __name__=='__main__':
         for f in folders:
             # move to folder
             # E step
-            os.chdir(f)
-            command_line='nohup ../bin/topicmap -f sliced_corpus.txt -infer -model ../'+\
+            os.chdir(cur_folder+'/'+f)
+            os.system('rm log.log')
+            command_line='nohup '+bin_path+'/topicmap -o results -f sliced_corpus.txt -infer -model ../'+\
                           model_file+' -alpha_file ../alphas.txt -word_wn ../'+\
                           word_wn_file+' '+option_t+' > log.log &'
             #print 'running::', command_line
             os.system(command_line)
-            os.chdir('../')
-
+        
+        
+        # back to cur_folder
+        os.chdir(cur_folder)
+        time.sleep(writing_time)
         
         # this lets you wait until all jobs are done
         all_jobs_are_done(folders, waiting_time)
@@ -199,12 +226,12 @@ if __name__=='__main__':
         lik=get_likelihoods(folders)
         
         # collecting
-        os.system('cat parallel_lda_*/lda_class_words.txt > model.txt')
-        os.system('cat parallel_lda_*/lda_gammas.txt > all_gammas.txt')
+        collect_from_folders(folders, 'results/lda_class_words.txt', 'model.txt')
+        collect_from_folders(folders, 'results/lda_gammas_final.txt', 'all_gammas.txt')
         time.sleep(writing_time)
         
         # optimizing alpha
-        os.system('./bin/opt_alpha all_gammas.txt')
+        os.system(bin_path+'/opt_alpha all_gammas.txt')
         time.sleep(writing_time)
     
         # updates file name and counter
@@ -216,14 +243,19 @@ if __name__=='__main__':
         update_activity('likelihood:: '+str(lik)+' prev:: '+\
                         str(old_lik)+' iter:: '+str(iter))
         likout.write(str(iter)+' '+str(lik)+'\n')
-        # at least 9 iterations
-        if iter>9:
-            if math.fabs((lik-old_lik)/old_lik)<1e-5 or lik<old_lik:
-                break
+        
+        # saving model
+        os.system('cp model.txt model_'+str(iter))
+        os.system('cp all_gammas.txt all_gammas_'+str(iter))
+
+        if math.fabs((lik-old_lik)/old_lik)<1e-5 or lik<old_lik:
+            break
         old_lik=lik
         
-    print 'done'
+    collect_from_folders(folders, 'results/lda_word_assignments_final.txt', 'all_word_assignments.txt')
+
     likout.close()
+    print 'done'
     
     
     
