@@ -1,5 +1,57 @@
 
 
+void check_folder(string folder_name) {
+    
+    
+    /*
+     this is the entire output of the program:
+     lda_alphas*.txt
+     lda_betas_sparse*.txt
+     lda_class_words*.txt
+     lda_gammas*.txt
+     lda_log_likelihood_per_doc.txt
+     lda_log_likelihood.txt
+     lda_summary*.txt
+     lda_word_assignments*.txt
+     plsa_betas_sparse.txt
+     plsa_summary.txt
+     plsa_thetas_sparse.txt
+     plsa_thetas.txt
+     plsa_word_assignments.txt
+     infomap-words.part
+     infomap.log
+     infomap.part
+     sig_words.tree
+     sig_words.net
+     word_wn_count.txt
+     time_seed.dat
+    */
+    
+    
+    cout<<"making directory:: "<<folder_name<<endl;
+    string make_folder="nohup mkdir "+folder_name+" > mkdir.tmp";
+    int sy_err=system(make_folder.c_str());
+    cout<<"mkdir "<<folder_name<<" returned:: "<<sy_err<<endl;
+    
+    ifstream gin("mkdir.tmp");
+    deque<string> lines;
+    string line;
+    while(getline(gin, line)) {
+        lines.push_back(line);
+    }
+    
+    if(lines.size()>0) {
+        cerr<<"folder \""<<folder_name<<"\" is not empty"<<endl;
+        cerr<<"please remove it or run this program with a different out-directory"<<endl;
+        exit(-1); 
+    }
+    
+    sy_err=system("rm mkdir.tmp");
+    
+    
+}
+
+
 
 
 void set_matrix_to_zero(int rows, int columns, deque<DD> & matrix) {
@@ -23,8 +75,6 @@ void print_matrix_to_file_or_screen(deque<DD> & matrix, string filename) {
     }
     
 }
-
-
 
 
 

@@ -331,7 +331,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
                                       mapid & pt_best, \
                                       deque<mapid> & doc_topic_best, \
                                       map<int, mapid> & topic_word_best, \
-                                      bool verbose, double step) {
+                                      bool verbose, double step, string out_dir) {
     
     
     // for each document, the topic which we believe
@@ -391,7 +391,7 @@ double word_corpus::optimal_filtering(mapii & hard_mems, \
     
     if(verbose) cout<<"optimal filtering: "<<optimal_par<<endl;
     
-    ofstream asgout("plsa_word_assignments.txt");
+    ofstream asgout((out_dir+"/plsa_word_assignments.txt").c_str());
     RANGE_loop(doc_number, doc_assignments_best) {
 
         IT_loop(deqii, wn_occ, docs_[doc_number].wn_occs_) {
@@ -415,7 +415,8 @@ double word_corpus::dimap(int Nruns, \
                           bool print_sig_words,
                           mapid & pt, \
                           deque<mapid> & doc_topic_best, \
-                          map<int, mapid> & topic_word_best) {
+                          map<int, mapid> & topic_word_best, \
+                          string out_dir) {
     
     doc_topic_best.clear();
     topic_word_best.clear();
@@ -430,7 +431,7 @@ double word_corpus::dimap(int Nruns, \
         DI links2;
         DD weights;
         // running null model (without parallelization going on)
-        null_model(links1, links2, weights, 0, 0, 1, print_sig_words);
+        null_model(links1, links2, weights, 0, 0, 1, print_sig_words, out_dir);
         
         // collecting infomap initial partition
         if(links1.size()==0) {
@@ -441,11 +442,11 @@ double word_corpus::dimap(int Nruns, \
         
         get_infomap_partition_from_edge_list(Nruns, irand(100000000), \
                                              links1, links2, weights, \
-                                             hard_memberships, verbose);
+                                             hard_memberships, verbose, out_dir);
         links1.clear();
         links2.clear();
         weights.clear();
-        write_partition(hard_memberships);
+        write_partition(hard_memberships, out_dir);
     } else {
         cout<<"reading partition from file: "<<partition_file_<<endl;
         int_matrix ten;
@@ -457,7 +458,7 @@ double word_corpus::dimap(int Nruns, \
     double eff_ntopics=optimal_filtering(hard_memberships, 
                                          pt, doc_topic_best,
                                          topic_word_best,
-                                         verbose, step);
+                                         verbose, step, out_dir);
     
     return eff_ntopics;
     

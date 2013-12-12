@@ -54,3 +54,4 @@ edges2pajek
 cop
 *.cop
 show_topic_info
+docmap_tmp.cpp

@@ -15,6 +15,8 @@ int main(int argc, char * argv[]) {
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
     
+    // check that folder is empty
+    check_folder(P.string_ps.at("-o"));
     
     /*
      setting corpus from file

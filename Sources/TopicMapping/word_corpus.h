@@ -41,7 +41,7 @@ public:
 
 
     // setting the corpus
-	void set_from_file(string filename);
+	void set_from_file_first_time(string filename, string out_dir);
     void set_from_file(string filename, string wn_file);
 	void write_corpus_file();
 
@@ -50,7 +50,7 @@ public:
     int get_num_terms() { return int(word_occurrences_.size()); };
 
     // computing the network
-    void null_model(string parall_str);
+    void null_model(string parall_str, string out_dir);
     void write_theta_file(deque<mapid> & doc_topic,\
                           map<int, mapid> & topic_word, \
                           string theta_file);
@@ -65,13 +65,14 @@ public:
                  bool print_sig_words,
                  mapid & pt, \
                  deque<mapid> & doc_topic_best, \
-                 map<int, mapid> & topic_word_best);
+                 map<int, mapid> & topic_word_best,\
+                 string out_dir);
     
     double lda_model(map<int, mapid> & topic_word, \
                      double alpha_init,\
                      bool skip_alpha_opt, \
                      bool infer_flag, int print_lag,\
-                     string alpha_file);
+                     string alpha_file, string out_dir);
     
 private:
     
@@ -84,10 +85,10 @@ private:
     void dotpr_similarity_of_connected_words_parallel(map<pair<int, int> , int> & cooc, \
                                                       int par_a, int par_b, int max_ab);
     void null_model(DI & links1, DI & links2, DD & weights, \
-                    int par_a, int par_b, int max_ab, bool print_sig_words);
+                    int par_a, int par_b, int max_ab, bool print_sig_words, string out_dir);
         
     // likelihood filtering
-    void write_partition(mapii & hard_mems);
+    void write_partition(mapii & hard_mems, string out_dir);
     void initial_ptopic(deque<mapid> & doc_topic, \
                         map<int, mapii> & word_topic, \
                         const mapii & hard_mems, \
@@ -107,15 +108,16 @@ private:
                              mapid & pt_best, \
                              deque<mapid> & doc_topic_best, \
                              map<int, mapid> & topic_word_best, \
-                             bool verbose, double step);
+                             bool verbose, double step, string out_dir);
     
     
     // lda functions
     double lda_inference(int doc_number);
     double compute_likelihood(int doc_number, DD & var_gamma);
-    double E_step(bool verbose);
+    double E_step(bool verbose, string out_dir);
     double run_em();
-    double run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag);
+    double run_em_sparse(bool skip_alpha_opt, bool infer_flag, \
+                         int print_lag, string out_dir);
     void set_class_words_to_zeros_map();
     void set_class_words_to_zeros();
     void initialize_lda_data(map<int, mapid> & topic_word,\
@@ -137,7 +139,7 @@ private:
                                 const double & likelihood_alpha,\
                                 bool print_assignments, ostream & asgout);
     
-    void print_lda_results();
+    void print_lda_results(string out_dir, int iter);
     void print_betas(string outfile);
     
     

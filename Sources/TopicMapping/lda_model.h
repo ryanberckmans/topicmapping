@@ -13,7 +13,7 @@ double word_corpus::lda_model(map<int, mapid> & topic_word, \
                               double alpha_init,\
                               bool skip_alpha_opt, \
                               bool infer_flag, int print_lag,\
-                              string alpha_file) {
+                              string alpha_file, string out_dir) {
 
 
 
@@ -23,7 +23,7 @@ double word_corpus::lda_model(map<int, mapid> & topic_word, \
     initialize_lda_data(topic_word, alpha_init, alpha_file);
     
     // loop until convergence
-    run_em_sparse(skip_alpha_opt, infer_flag, print_lag);
+    run_em_sparse(skip_alpha_opt, infer_flag, print_lag, out_dir);
     
     return 0.;
 

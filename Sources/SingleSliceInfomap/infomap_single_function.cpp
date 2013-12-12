@@ -63,7 +63,7 @@ void get_the_partition(string tree_file, mapii & hard_memberships) {
 double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
                                             const deque<int> & links1, const deque<int> & links2,
                                             const deque<double> & weights,
-                                            mapii & hard_memberships, bool verbose) {
+                                            mapii & hard_memberships, bool verbose, string out_dir) {
 
     //
     // same function as below
@@ -117,7 +117,7 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
     
     
     cout<<"writing word graph to sig_words.net"<<endl;
-    ofstream sigout("sig_words.net");
+    ofstream sigout((out_dir+"/sig_words.net").c_str());
     sigout<<"*Vertices "<<labels.size()<<endl;
     RANGE_loop(i, new_labels) {
         sigout<<i+1<<" \""<<new_labels[i]<<"\""<<endl;
@@ -133,8 +133,8 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
     sprintf(num_trials_ch, "  --num-trials %d ", Ntrials);
     char seed_ch[200];
     sprintf(seed_ch, " --seed %d ", random_seed);
-    string option_file(" sig_words.net ./ --two-level --undirected  ");
-    string option_log(" > infomap.log");
+    string option_file= " "+out_dir+"/sig_words.net "+out_dir+" --two-level --undirected  ";
+    string option_log= " > "+out_dir+"/infomap.log";
     string command_line = INFOMAP_PATH + option_file + string(num_trials_ch) + string(seed_ch) + option_log;
     
     // running the code
@@ -142,37 +142,9 @@ double get_infomap_partition_from_edge_list(int Ntrials, int random_seed, \
     int sy=system(command_line.c_str());
     cout<<"Infomap's call returned:: "<<sy<<" "<<endl;
     
-    get_the_partition("sig_words.tree", hard_memberships);
+    get_the_partition(out_dir+"/sig_words.tree", hard_memberships);
     
     return 0.;
-}
-
-
-double get_infomap_partition_from_file(int Ntrials, int random_seed, \
-                                       string filename, mapii & hard_memberships, 
-                                       bool verbose) {
-    
-    ifstream gin(filename.c_str());
-    string s;
-    DI links1;
-    DI links2;
-    DD weights;
-    
-    while(getline(gin, s)) {
-        DD link_s;
-        cast_string_to_doubles(s, link_s);
-        int n1= cast_int(link_s[0]);
-        int n2= cast_int(link_s[1]);
-        links1.push_back(n1);
-        links2.push_back(n2);
-        weights.push_back(link_s[2]);
-    }
-    
-    
-    return get_infomap_partition_from_edge_list(Ntrials, \
-                                                random_seed,\
-                                                links1, links2, weights, \
-                                                hard_memberships, verbose);
 }
 
 

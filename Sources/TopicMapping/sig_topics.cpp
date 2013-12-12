@@ -85,7 +85,8 @@ void word_corpus::dotpr_similarity_of_connected_words_parallel(map<pair<int, int
 
 
 void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
-                             int par_a, int par_b, int max_ab, bool print_sig_words) {
+                             int par_a, int par_b, int max_ab,\
+                             bool print_sig_words, string out_dir) {
 	
     
     //  this is the general function
@@ -153,7 +154,9 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
         } else {  
             sprintf(outfile, "sig_words.edges");
         }
-        ofstream sigout(outfile);
+        string outfile_s(outfile);
+        outfile_s = out_dir+"/"+outfile_s;
+        ofstream sigout(outfile_s.c_str());
         RANGE_loop(i, links1)
             sigout<<links1[i]<<" "<<links2[i]<<" "<<weights[i]<<endl;
         sigout.close();
@@ -165,7 +168,7 @@ void word_corpus::null_model(DI & links1, DI & links2, DD & weights,\
 
 
 
-void word_corpus::null_model(string parall_str) {
+void word_corpus::null_model(string parall_str, string out_dir) {
     
     // public interface for parallelization
 
@@ -186,7 +189,7 @@ void word_corpus::null_model(string parall_str) {
     DD weights;
     
     // default is no parallelization 
-    null_model(links1, links2, weights, parall_i, parall_j, parall_n, true);
+    null_model(links1, links2, weights, parall_i, parall_j, parall_n, true, out_dir);
     
     
 }

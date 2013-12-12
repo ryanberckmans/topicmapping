@@ -1,7 +1,7 @@
 
-void word_corpus::set_from_file(string filename) {
+void word_corpus::set_from_file_first_time(string filename, string out_dir) {
     
-	ofstream pout("word_wn_count.txt");
+	ofstream pout((out_dir+"/word_wn_count.txt").c_str());
 	ifstream gin(filename.c_str());
 	
     multimap<int, int> occurences_wn;			// occurences - wn
@@ -141,7 +141,7 @@ void word_corpus::write_corpus_file() {
 
 
 
-void word_corpus::write_partition(mapii & hard_mems) {
+void word_corpus::write_partition(mapii & hard_mems, string out_dir) {
     
     map<int, DI> partition;
     IT_loop(mapii, itm, hard_mems) {
@@ -151,12 +151,12 @@ void word_corpus::write_partition(mapii & hard_mems) {
         }
         partition[itm->second].push_back(itm->first);
     }
-    ofstream pout("infomap.part");
+    ofstream pout((out_dir+"/infomap.part").c_str());
     for(map<int, DI>::iterator itm= partition.begin(); itm!=partition.end(); itm++) {
         prints(itm->second, pout);
     }
     pout.close();
-    pout.open("infomap-words.part");
+    pout.open((out_dir+"/infomap-words.part").c_str());
     for(map<int, DI>::iterator itm= partition.begin(); itm!=partition.end(); itm++) {
         deque<pair<int, int> > occ_wn;
         RANGE_loop(i, itm->second) {

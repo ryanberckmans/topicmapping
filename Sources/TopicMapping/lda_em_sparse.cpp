@@ -311,7 +311,7 @@ double word_corpus::compute_likelihood_alpha_terms(double & sum_alphas) {
 }
 
 
-double word_corpus::E_step(bool verbose) {
+double word_corpus::E_step(bool verbose, string out_dir) {
     
     
     // performing E step and returning likelihood
@@ -319,8 +319,8 @@ double word_corpus::E_step(bool verbose) {
     ofstream likout;
     ofstream asgout;
     if(verbose) {
-        likout.open("lda_log_likelihood_per_doc.txt");
-        asgout.open("lda_word_assignments.txt");
+        likout.open((out_dir+"/lda_log_likelihood_per_doc.txt").c_str());
+        asgout.open((out_dir+"/lda_word_assignments.txt").c_str());
         cout<<"final E step"<<endl;
     }
     double sum_alphas=0.;
@@ -350,11 +350,12 @@ double word_corpus::E_step(bool verbose) {
 
 
 
-double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int print_lag) {
+double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag,\
+                                  int print_lag, string out_dir) {
     
     cout<<"running EM"<<endl;    
     
-    ofstream likvalue("lda_log_likelihood.txt");    
+    ofstream likvalue((out_dir+"/lda_log_likelihood.txt").c_str());    
     double likelihood_old=-1e300;
     // these are the variational parameters
     // which are the main output of the program
@@ -365,7 +366,7 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         ++iter;
         // E step
         cout<<"E step "<<iter<<endl;
-        double likelihood_all = E_step(false);
+        double likelihood_all = E_step(false, out_dir);
 
         // M step
         // optimizing betas
@@ -394,23 +395,24 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
         likelihood_old=likelihood_all;
         
         if(iter%print_lag==1) {
-            print_lda_results();
+            print_lda_results(out_dir, iter);
         }
     }
     
     
     //final E step
-    double likelihood_all = E_step(true);
+    double likelihood_all = E_step(true, out_dir);
 
     cout<<"log likelihood "<<likelihood_all<<endl;
     likvalue<<iter+1<<" "<<likelihood_all<<endl;
     likvalue.close();
-    print_lda_results();
+    // -1 because it's final
+    print_lda_results(out_dir, -1);
     
     // printing lda_class_words (just at the very end)
     map<int, mapid> topic_word;
     from_class_to_topic_word(class_word_ldav_map_, topic_word, false);
-    print_topic_sparse_format_short(topic_word, "lda_class_words.txt");
+    print_topic_sparse_format_short(topic_word, out_dir+"/lda_class_words.txt");
     
 
     return 0.;
@@ -420,12 +422,22 @@ double word_corpus::run_em_sparse(bool skip_alpha_opt, bool infer_flag, int prin
 
 
 
-void word_corpus::print_lda_results() {
-        
+void word_corpus::print_lda_results(string out_dir, int iter) {
+    
+    string iter_s;
+    if (iter<0) {
+        iter_s="final";
+    } else{
+        char iter_c[100];
+        sprintf(iter_c, "%d", iter);
+        iter_s=string(iter_c);
+    }
+    
+    
     cout<<"printing LDA results"<<endl;
     deque<DD> gammas_ldav;
-    compute_non_sparse_gammas(gammas_ldav);    
-    ofstream pout_final("lda_gammas.txt");
+    compute_non_sparse_gammas(gammas_ldav); 
+    ofstream pout_final((out_dir+"/lda_gammas_"+iter_s+".txt").c_str());
     printm(gammas_ldav, pout_final);
     pout_final.close();
     
@@ -438,11 +450,12 @@ void word_corpus::print_lda_results() {
     get_ptopic_distr(ptopic, gammas_ldav);
     
     cout<<"topics printed: "<<topic_word.size()<<" words: "<<betas_ldav_map_.size()<<endl;
-    print_topic_sparse_format_complete(topic_word, "lda_betas_sparse.txt",\
-                                       "lda_summary.txt", word_strings_, \
+    print_topic_sparse_format_complete(topic_word, out_dir+"/lda_betas_sparse_"+iter_s+".txt",\
+                                       out_dir+"/lda_summary_"+iter_s+".txt", \
+                                       word_strings_, \
                                        ptopic, num_words_shown);
     
-    ofstream alpha_out("lda_alphas.txt");
+    ofstream alpha_out((out_dir+"/lda_alphas_"+iter_s+".txt").c_str());
     prints(alphas_ldav_, alpha_out);
     alpha_out.close();
     

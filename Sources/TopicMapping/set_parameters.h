@@ -200,6 +200,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
 
 
     P.set_string("-f", "nofile", true, "[string]: name of the corpus file (plain txt file)");
+    P.set_string("-o", "nofile", true, "[string]: directory name where the program will write all the results to");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
     P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
     P.set_int("-t", 0, true, "[int]: minimum number of documents per topic. 10 is recommended for fairly large datasets (more than 1000 documents)");    
@@ -216,7 +217,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_bool("-write_net", false, false, " : writes a file called \"sig_words.edges\" in the format \"wn wn weight\"");
     P.set_bool("-infer", false, false, " : performs one single E step for inferring gammas.");
     P.set_string("-parall", "", false, "[string= \"i:j:n\"] : this is for building sig_words.edges with multiple (n^2) jobs. i,j must be >=0 and <n.");
-    P.set_int("-lag", 20, false, "[int] : lda model is printed every [-lag] EM steps.");
+    P.set_int("-lag", 5, false, "[int] : lda model is printed every [-lag] EM steps.");
     P.set_bool("-corpus", false, false, " : writes dataset in .corpus format.");
     P.set_int("-random", -1, false, "[int= K] : skips infomap and starts from a random model with K topics.");
     P.set_bool("-skip_lda", false, false, " : skip lda optimization");
