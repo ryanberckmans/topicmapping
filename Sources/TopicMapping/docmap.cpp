@@ -15,9 +15,12 @@ int main(int argc, char * argv[]) {
     parameters P;
 	set_parameters_for_docmap(P, argc, argv);
     
-    // check that folder is empty
-    check_folder(P.string_ps.at("-o"));
     
+    // check that folder is empty
+    
+    cout<<"checking out-directory"<<endl;
+    check_folder(P.string_ps.at("-o"));
+
     /*
      setting corpus from file
      lots of parameter are thrown here because
@@ -33,7 +36,7 @@ int main(int argc, char * argv[]) {
     // setting docs_ and basic structures
     if(P.string_ps.at("-word_wn").size()==0) {
         cout<<"*** corpus file: "<<P.string_ps.at("-f")<<endl;
-        C.set_from_file(P.string_ps.at("-f"));
+        C.set_from_file_first_time(P.string_ps.at("-f"), P.string_ps.at("-o"));
     } else {
         C.set_from_file(P.string_ps.at("-f"), P.string_ps.at("-word_wn"));        
     }
@@ -41,14 +44,14 @@ int main(int argc, char * argv[]) {
     
     if(P.bool_ps.at("-corpus")) {
         cout<<"writing corpus file CORPUS.corpus"<<endl;
-        C.write_corpus_file();
+        C.write_corpus_file(P.string_ps.at("-o"));
         cout<<"exiting..."<<endl;
         return 0;
     }
     
     if(P.string_ps.at("-parall").size()!=0) {
         cout<<"running null model only"<<endl;
-        C.null_model(P.string_ps.at("-parall"));
+        C.null_model(P.string_ps.at("-parall"), P.string_ps.at("-o"));
         return 0;
     }
 
@@ -77,16 +80,18 @@ int main(int argc, char * argv[]) {
                                    P.double_ps.at("-step"),
                                    P.bool_ps.at("-write_net"),
                                    pt, doc_topic_best, \
-                                   topic_word);
+                                   topic_word, \
+                                   P.string_ps.at("-o"));
 
         cout<<"effective number topics: "<<eff_ntopics<<endl;
         
         // writing p(t|doc) and p(w|t) in files thetas.txt and betas.txt
         C.write_short_beta_and_theta_files(doc_topic_best, topic_word, \
-                                           "plsa_thetas_sparse.txt", \
-                                           "plsa_betas_sparse.txt", \
-                                           "plsa_summary.txt", pt);    
-        C.write_theta_file(doc_topic_best, topic_word, "plsa_thetas.txt");
+                                           P.string_ps.at("-o")+"/plsa_thetas_sparse.txt", \
+                                           P.string_ps.at("-o")+"/plsa_betas_sparse.txt", \
+                                           P.string_ps.at("-o")+"/plsa_summary.txt", pt);    
+        C.write_theta_file(doc_topic_best, topic_word,\
+                           P.string_ps.at("-o")+"/plsa_thetas.txt");
     
     } else {
         // skipping all the previous part because we are loading a model from file
@@ -99,7 +104,8 @@ int main(int argc, char * argv[]) {
                 P.bool_ps.at("-skip_opt_al"), \
                 P.bool_ps.at("-infer"),\
                 P.int_ps.at("-lag"), \
-                P.string_ps.at("-alpha_file"));
+                P.string_ps.at("-alpha_file"), \
+                P.string_ps.at("-o"));
     
     cout<<"--done!--"<<endl;
 
