@@ -87,7 +87,7 @@ void parameters::error_statement(char * argv[]) {
 	}
     
     cerr<<endl<<"Basic example: "<<endl;
-    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -t 100"<<endl;
+    cerr<<argv[0]<<" -f quantum-and-granular-large-stemmed -o test_results -t 10"<<endl;
     cerr<<"Please look at ReadMe.pdf for more info."<<endl;
 }
 
