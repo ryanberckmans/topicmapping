@@ -26,7 +26,7 @@ os.system('g++ -O3 -funroll-loops -Wall -o bin/opt_alpha ./Sources/TopicMapping/
 print 'compiling pajek formatter'
 os.system('g++ -O3 -funroll-loops -Wall -o bin/edges2pajek ./Sources/SingleSliceInfomap/pajek_format.cpp')
 
-print 'compiling partition converted'
+print 'compiling partition converter'
 os.system('g++ -O3 -funroll-loops -Wall -o bin/tree2part ./Sources/SingleSliceInfomap/get_partition.cpp')
 
 print 'compiling show topic info'
