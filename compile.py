@@ -40,7 +40,8 @@ original_file='./Sources/TopicMapping/docmap.cpp'
 
 replaced_file=open('./Sources/TopicMapping/docmap_tmp.cpp', 'w')
 
-if len(infomap_path.split()!=1):
+# asserting that there no empty spaces (Infomap's call would not work)
+if len(infomap_path.split())!=1:
     print 'error with directory name', cur_dir
     print 'please remove empty spaces from directory name and compile again'
     exit(-1)
