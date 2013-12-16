@@ -203,7 +203,7 @@ void set_parameters_for_docmap(parameters & P, int argc, char * argv[]) {
     P.set_string("-o", "nofile", true, "[string]: directory name where the program will write all the results to");
 	P.set_double("-p", 0.05, false, "[float]: the p-value, any number bigger than 0 and smaller than 1. Default is 0.05. Bigger the p-value, fewer the topics.");
     P.set_int("-r", 10, false, "[int]: number of runs for Infomap. Default is 10");
-    P.set_int("-t", 0, true, "[int]: minimum number of documents per topic. 10 is recommended for fairly large datasets (more than 1000 documents)");    
+    P.set_int("-t", 10, false, "[int]: minimum number of documents per topic. 10 (default) is recommended for fairly large datasets (more than 1000 documents)");    
     P.set_double("-minf", 0., false, "[double] minimum value for the likelihood filter. Default is 0.");
     P.set_double("-maxf", 0.51, false, "[double] maximum value for the likelihood filter.");
     P.set_double("-alpha", 0.01, false, "[double] initial value of alpha. Default is 0.01");

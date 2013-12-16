@@ -99,14 +99,16 @@ int main(int argc, char * argv[]) {
     }
     
     // optimizing LDA
-    C.lda_model(topic_word,
-                P.double_ps.at("-alpha"), \
-                P.bool_ps.at("-skip_opt_al"), \
-                P.bool_ps.at("-infer"),\
-                P.int_ps.at("-lag"), \
-                P.string_ps.at("-alpha_file"), \
-                P.string_ps.at("-o"));
+    if(P.bool_ps.at("-skip_lda")==false) {
     
+        C.lda_model(topic_word,
+                    P.double_ps.at("-alpha"), \
+                    P.bool_ps.at("-skip_opt_al"), \
+                    P.bool_ps.at("-infer"),\
+                    P.int_ps.at("-lag"), \
+                    P.string_ps.at("-alpha_file"), \
+                    P.string_ps.at("-o"));
+    }
     cout<<"--done!--"<<endl;
 
     return 0;

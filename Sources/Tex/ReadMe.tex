@@ -25,14 +25,13 @@
 %\section{}
 %\subsection{}
 
-Thanks for downloading the code which implements TopicMapping (Text Infomap).
+Thanks for downloading the code which implements TopicMapping.
+The algorithm finds topics in a set of documents using network clustering (Infomap) [1] 
+and  LDA likelihood optimization [2]. 
 
-The algorithm finds topics in a set of documents using network clustering (Infomap [1]) 
-and a likelihood local optimization.
 
-
-This guide will tell you (1) how to compile, (2) what are the input and output format, (3) how to tune the algorithm's parameter, and (4) some overall suggestions to get topics with the desired level of coarse-graining. 
- 
+This guide will tell you how to compile, what are the input and output format,
+how to tune the algorithm's parameters, and some more.
 
 
 
@@ -45,7 +44,7 @@ This guide will tell you (1) how to compile, (2) what are the input and output f
 
 Open  a a Unix (MAC) terminal and type  
 
-\textbf{make}
+\textbf{python compile.py}
 
 If you are using Windows, you could still run
 the program by installing MinGW
@@ -57,7 +56,7 @@ the program by installing MinGW
 \subsection{Input}
 Let us can start with an example:
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -t 10 -o test\_results}
 
 The option \textbf{-f} is followed by the name of the file where the corpus is recorded. This file is supposed 
 to contain a number of strings separated by newlines. Every string will be considered a different document.
@@ -68,40 +67,45 @@ is the first document,
 \textit{``develop theori interlay tunnel \dots"}
 is the second document and so on.
 
-The reason why the documents look strange is that we used a stemming algorithm and we removed stop-words. If you want to do the same thing (we recommend it),  you can use the following:
+The reason why the documents look a little strange is that we used a stemming algorithm and we removed stop-words. If you want to do the same thing (we recommend it),  you can use the following:
 
-\textbf{python Sources/stem.py [original\_file] [output\_file]}
+\textbf{python Sources/NatLangProc/stem.py [original\_file] [output\_file]}
 
-which requires the library called \textit{stemming}. The list of stop words is in ``\textit{Sources/blacklist129.txt}".
+which requires the python library called \textit{stemming}.
 
-\textbf{IMPORTANT:} Please make sure that your corpus file does not contain empty lines (or lines with just white spaces). They will be skipped by the algorithm, but it could be harder to match topics and documents afterwards.
+The list of stop words is in ``\textit{Sources/NatLangProc/blacklist129.txt}".
 
+\textbf{IMPORTANT:} Please make sure that your corpus file does not contain empty lines (or lines with just white spaces). 
 
+The other options in the example are explained in the next two sections.
 %On a side note, 
 %\textbf{-p 0.5} is tuning the $p-$value for assessing if words deserve to be connected.
 %The reason for such a high  $p-$value is that the corpus is so small that its word similarities are not considered significant otherwise (see below).
 
 \subsection{Output}
 
-By default, the algorithm provides topics and subtopics. Each document is associated with a probability distribution of topics and each topic is characterized by a  distribution of words. These two distributions are written in two separate files:
+Option \textbf{-o} specifies the directory where all the output is redirected to, \textit{test\_results} in the example above.
+
+
+Each document is associated with a probability distribution of topics and 
+each topic is characterized by a  distribution of words. These two distributions are written in two separate files:
 
 \begin{enumerate}
-  \item \textbf{doc\_topics.txt} provides the probability of topics, for each document: $p(\textrm{topic}|\textrm{doc})$. Every line refers to a document, in the same order as they appear in the corpus file. Each line is a string of pairs in the format:
+  \item \textbf{lda\_gammas\_final.txt} provides the probability of topics, for each document: $p(\textrm{topic}|\textrm{doc})$. Every line refers to a document, in the same order as they appear in the corpus file. Each number is the average usage of the corresponding topics.
  
- ``$\textrm{topic}:p(\textrm{topic} | \textrm{doc})$". 
-  
- For instance, ``10:\textbf{0.3}~22:\textbf{0.7}" means that topic 10 is used with probability $0.3$ and topic 22 with probability $0.7$.
+ For instance, ``0.025 0.01 58.8" means that topic 0 is used $0.025$ times, topic 1 is used $0.01$ times, and topic 2 is used $58.8$ times, on average.
+ To get the probabilities, just normalize this vector.
 
-  \item  \textbf{topic\_words.txt} provides $p(\textrm{word}|\textrm{topic})$. Every line is a topic. Pairs word-probability are sorted starting from the most probable. 
+  \item  \textbf{lda\_betas\_sparse\_final.txt} provides $p(\textrm{word}|\textrm{topic})$. Every line is a topic. The first number is the topic number. After that,  pairs \textbf{(word-id, probability)} are sorted starting from the most probable. The word-ids can be mapped to the actual words from the file \textbf{word\_wn\_count.txt} (see below).
 \end{enumerate}
 
-\textbf{doc\_topics2.txt} and \textbf{topic\_words2.txt} are the analogous for the subtopics.
+Similar files such as  \textbf{lda\_gammas\_1.txt},  \textbf{lda\_gammas\_6.txt} etc., are printed every few iterations. Files  \textbf{plsa\_thetas.txt} and  \textbf{plsa\_betas\_sparse.txt} also have the same content, obtained before running LDA optimization.
 
-There are also two summary files, \textbf{topic\_summary.txt} and  \textbf{subtopic\_summary.txt} which give overall information about topics and subtopics respectively, such as their probability $p(t)$,  and their top $20$ words. In \textbf{subtopic\_summary.txt} it is also possible to see the parent topic.
-\textit{If these files are too long, you can try to run a simple and quick python script which should make the information more digestible (see Sec.~\ref{suggestions})}.
+
 
 Other supporting files are:
 \begin{enumerate}
+\item \textbf{lda\_summary\_final.txt} gives overall information about the topics, such as their probability $p(t)$, the total number of words which have positive probability given this topic, and their top $100$ words.
 \item \textbf{word\_wn\_count.txt} contains strings in the format ``word~word-id~occurrences".
 \item \textbf{infomap.part} contains the (hard) partition of words found by Infomap, where words are represented with the word-id which can be found in  \textbf{word\_wn\_count.txt}
 \item \textbf{infomap-words.part} is the same file as before, written in words.
@@ -110,37 +114,31 @@ Other supporting files are:
 
 \section{Algorithm options}
 
-The basic way to run TopicMapping, is just to specify the corpus file, as we did before. The option for that is \textbf{-f} [filename (string)].
+The basic way to run TopicMapping is to specify just the corpus file and the out-directory.
 
+However, TopicMapping has also a number of options to tune the size of the topics, the execution time and more.
+The following is an overview of most available options. Other options are available calling the program without arguments.
 
-Example:
-
-\textbf{./topicmap -f quantum-and-granular-large-stemmed }
-
-
-TopicMapping has also a number of options to tune the size of the topics, the execution time and more. The following is an overview of all the available options. %with examples of how to use them in practical cases.
- 
-If you want to fully learn how to use the algorithm, you can go though this section (two pages) and try the examples at the end of each subsection. 
-\textbf{But if you are impatient, go to Sec.~\ref{suggestions} and come back here when you want to know how the options work in detail.}
 
 \subsection{Topic size}
 
 The algorithm runs without supervision, in particular it does not require that you input a prefixed number of topics. However,  two options are available to tune the granularity of the topics to some extent:
 
 \begin{enumerate}
-\item \textbf{-p}~[$p-$value (float)].
-Higher values of the $p-$value will deliver fewer and  more coarse-grained topics because the network of words is more connected. Default is $5\%$.
-\item \textbf{-t}~[threshold (integer)]. Minimum number of documents per topic (for subtopics the option is \textbf{-subt}~[threshold (integer)].) A few topics will likely be very small because of some isolated words. This option allows to get rid of very small topics, such as those used less than the threshold. The threshold is measured in number of documents: for instance \textbf{-t} $10$ means that each topic mush be covered by  at least 10 documents.  Default is 0, but 10 or 100 is recommended for big corpuses. \small{Documents which are entirely isolated from the others, cannot be assigned to any other topic and will still belong to their own topic.}\normalsize{}
+\item \textbf{-t}~[threshold (integer)]. Minimum number of documents per topic. A few topics will likely be very small because of some isolated words. This option allows to get rid of very small topics, such as those used less than the threshold. The threshold is measured in number of documents: for instance \textbf{-t 10} means that each topic must be covered by  at least 10 documents. \textbf{10 (default) or 100 is recommended for fairly large corpuses.} \small{Documents which are entirely isolated from the others, cannot be assigned to any other topic and will still belong to their own topic.}\normalsize{}
+
+\item \textbf{-p}~[$p$-value (float)].
+Higher values of the $p$-value will deliver fewer and  more coarse-grained topics because the network of words is more connected. Default is $5\%$.
 \end{enumerate}
 
 Examples:
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -p 0.1}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -p 0.1 -o test\_results -t 10}
 
 This does not change the topics very much. But the next example will filter out small topics, so that only two will be left.
 
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -t 100}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -o test\_results -t 100}
 
 
 
@@ -153,156 +151,83 @@ There are two options to set the accuracy of the algorithm. Tuning them, you can
 \begin{enumerate}
 
 \item \textbf{-r}~[number of runs (integer)].
-How many times you want the network clustering algorithm to run. Default is 1.
-\item \textbf{-conv}~[threshold (float)].
-If the relative gain of Infomap's objective function gets smaller than this threshold, the optimization is done. Default is $10^{-8}$, but $10^{-5}$ is recommended for big datasets.
+How many times you want the network clustering algorithm to run. Default is 10.
+
+\item \textbf{-step}~[interval in PLSA local optimization (float)].
+Default is 0.01. For example, 0.05 can be used to get faster results.
+Similarly, selecting \textbf{-minf} or \textbf{-maxf}, you can narrow the filter range and make the algorithm faster.
 \end{enumerate}
+
 
 
 Example:
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -r 1 -conv 1e-5}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -r 1 -step 0.05 -o test\_results}
 
 
-
-
-\subsection{Overlap}
-
-In LDA, high values of the hyperparameter $\alpha$, provide topic models where documents are assigned to many topics and topics are highly specialized on some words. On the contrary, small values of $\alpha$ will let documents use fewer topics, and topics have more overlap. The latter option is preferable.
-
-Here, we have not implemented the LDA model (yet), but you can decide how much overlap you would like, if you choose a range for the filter parameter $\eta$. The filter parameter tries to find models such that, for each document and topic,  $p(\textrm{topic}|\textrm{doc}) \geqslant \eta$. High values of the filter parameter are the equivalent of small values of $\alpha$: the overlap is on the words and not on the topics. By default, TopicMapping will scan all possible values of filter parameters from $0$ to $0.5$, in steps of $0.01$. 
-You can reduce the range with options: \textbf{-minf}~[lower-bound (float)], and \textbf{-maxf}~[upper-bound (float)].
-
-TopicMapping will figure out which value of the filter parameter is the best. If you like to save some time, you might want to manually set \textbf{-minf} $0.3$ or similar.
-
-\small{Also, if  TInfomap finds that the best value is zero or close, it is likely that your corpus have very short documents. In that case, I would probably increase \textbf{-minf} to 0.3 or 0.4}. \normalsize{}
-
-In the following example we fix $\eta=0.43$:
-
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -minf 0.43 -maxf 0.43}
 
 
 \subsection{Recycling previous runs}
 
-If you like to run the algorithm again with a different filtering range (options \textbf{-minf} and  \textbf{-maxf}) or find the subtopics with different parameters ($p-$value for example), you can read the word partition saved in a previous run in the file called ``\textit{infomap.part}". This will skip the first part of the algorithm: building the network and running Infomap for the topics. Option is: \textbf{-part} [infomap.part (string)].
+If you like to run the algorithm again with a different threshold, you can read the word partition saved in a previous run in the file called ``\textit{infomap.part}". This will skip the first part of the algorithm: building the network and running Infomap for the topics. The option is: \textbf{-part} [infomap.part (string)].
 
-After running the algorithm without the option, try the example:
+After running the algorithm without the option, try:
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -minf 0.2 -maxf 0.2 -part infomap.part -p 0.3 -t 20}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -o test\_results2 -t 100 -part test\_results/infomap.part }
 
-\small This allows you to explore how the topics change tuning the filtering range (\textbf{-minf 0.2 -maxf 0.2}), filtering out small topics (\textbf{-t 20}) or changing the $p-$value of the subtopics  (\textbf{-p 0.3}) without running everything from scratch. Please not that the $p-$value for the topics will be the same as in the previous run (the part where that is used is skipped here).
+\small This allows you to explore how the topics change filtering out more topics (\textbf{-t 100}), without running everything from scratch.
+
 \normalsize
-\subsection{Subtopics}
 
-TopicMapping will zoom in each topic and partition the documents which use that topic to provide subtopics.
-
-
-If the subtopic structure is not strong though (for instance there are no significant subtopics), TopicMapping might split the documents in a lot of very small subtopics, whereas you might prefer to be told that no subtopics will be found. 
-
-The option \textbf{-subdoc} [threshold (integer)] allows you to choose how many documents should be in each subtopic (on average) to say the subtopics are significant. Default is 10. \small{If you are already using option \textbf{-subt}, this threshold will be automatically set to be not small than that}. \normalsize{}
-
-In this example we will find very small subtopics which actually cover less than 10 documents each, on average.
-
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -subdocs 0}
-
-Instead, if you are \textbf{not} interested in finding subtopics at all,  the option is \textbf{-nos}:
-
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -nos}
-
-
-\subsection{More output}
-
-Option $\textbf{-fullout}$ will print files two additional files: \textit{thetas.txt} and \textit{betas.txt} (\textit{thetas2.txt} and \textit{betas2.txt} for subtopics.)
-
-\textit{thetas.txt} contains the same information as \textit{doc\_topics.txt}: each line is a document and is $p(\textrm{topic}|\textrm{doc})$ written as an array of length equal to the number of topics: the first number is the probability of using topic 1, the second number is for topic 2 and so on.
-
-\textit{betas.txt} contains the same information as \textit{topic\_words.txt}: Each line here refers to a topic. For each topic, the first number is the \textbf{log} of the probability of using the word whose word\_id is 0, the second number is for word\_id 1 and so on. (We recall that the word\_ids are the second argument of each line in file \textit{word\_wn\_count.txt}). In writing this file, we used Laplace smoothing with parameter $10^{-4}$.
-
-Example:
-
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -fullout  }
 
 \subsection{Random number generator}
 
-If you do not specify which seed you want, it will be read from file \textbf{time\_seed.dat}, which is updated at each run.
+If you do not specify any seed, it will be read from the file \textbf{time\_seed.dat}, which is updated at each run.
 If you like to input the seed, the option is \textbf{-seed} [integer].
 
 Example:
 
-\textbf{./topicmap -f quantum-and-granular-large-stemmed -seed 101010 }
-
-
-\section{Hands-on suggestions}
-\label{suggestions}
-
-Here, we suggest an overall set of commands to supervise the algorithm and get results with the desired granularity and overlap.
-
-For fairly large datasets (more than 1000 documents), we find useful the following set of options. We split the search for topics and subtopics. 
-
-\subsection{Topics}
-
-\begin{enumerate}
-
-\item \textbf{./topicmap -f quantum-and-granular-large-stemmed -minf 0.3 -conv 1e-5 -t 100 -nos -r 1 -p 0.05 -seed 1}
-
-\small{
-This will provide only the topics (\textbf{-nos} means no subtopics), with the requirement that  each topic is covered by at least 100 docs (\textbf{-t 100}). Options \textbf{-r 1 -p 0.05} are the default ones (1 run and $5\%\,\, p-$value) but we wrote them to make them explicit. \textbf{-conv 1e-5} is a reasonable convergence criterion (default is smaller though) and \textbf{-minf 0.3} requires that documents do not use too many topics. \textbf{-seed 1} sets the seed for the random number generator.
-}\normalsize{}
-
-\item 
-\textbf{mv infomap.part infomap-p005-t100.part}
-
-\small{
-We can save the word partition in  a file (Infomap's outcome), so that it does not get overwritten. 
-}\normalsize{}
-
-
-
-\item 
-\textbf{python Sources/show\_topic\_info.py topic\_summary.txt 100 5 quantum-and-granular-large-stemmed doc\_topics.txt}
-
-\small{
-This script allow us to quickly overview the results. Two files are generated: (1) \textit{short\_summary.txt} shows the topics which are covered by at least \textbf{100} docs, and the topics are named with their top \textbf{5} words. (2)  \textit{doc\_topics\_text.txt} shows the documents followed by $p(\textrm{topic}|\textrm{doc})$, written both with the topic ids and the topic names.
-}\normalsize{}
+\textbf{./bin/topicmap -f quantum-and-granular-large-stemmed -o test\_results -seed 101010 }
 
 
 
 
-\end{enumerate}
 
-\subsection{Subtopics}
-
- After this, we can run the algorithm for finding subtopics:
-
-\begin{enumerate}
-
-\item \textbf{./topicmap -f quantum-and-granular-large-stemmed -part infomap-p005-t100.part -minf 0.3 -conv 1e-5 -t 100 -subt 100 -subdocs 100 -r 1 -p 0.05 -seed 1}
-
-\small{
-\textbf{-part infomap-p005-t100.part} is for reading the word partition we saved before, so that we do not need to find the topics again. \textbf{-subdocs 100} says that if the algorithm was not able to find subtopics which cover at least 100 documents, we prefer to be told that no subtopics were found. Please note that changing the $p-$value will only affect the subtopics and not the topics,  because the network for topics was already computed beforehand. We keep the same \textbf{-t 100} as before, and we also set the same threshold for subtopics, \textbf{-subt 100}.
-}\normalsize{}
+\section{Subtopics}
 
 
+Sometimes, it is interesting to zoom-in in a topic to find its sub-topics. In order to do that, first we need to decide which topic we want to break further
+(for that, it is helpful to look at file \textbf{lda\_summary\_final.txt}). Let us say that we would like to zoom-in in topic 0.
+Running:
 
-\item \textbf{python Sources/show\_topic\_info.py subtopic\_summary.txt 100 10 quantum-and-granular-large-stemmed doc\_topics2.txt}
+\textbf{python Sources/py\_utils/write\_sub\_corpus.py test\_results/lda\_word\_assignments\_final.txt 0},
 
-\small{
-As before, we can check how the subtopics look like. Two files will be generated: \textit{short\_summary\_sub.txt} and   \textit{doc\_subtopics\_text.txt}.
-}\normalsize{}
-
-\item \textbf{./topicmap -f quantum-and-granular-large-stemmed -part infomap-p005-t100.part -minf 0.3 -conv 1e-5 -t 100 -subt 10 -subdocs 10 -r 1 -p 0.05 -seed 1}
-
-\small{
-Here we reduce the minimal size and we eventually get subtopics as well. 
-}\normalsize{}
+we get a file called \textbf{sub\_corpus.txt}, which only contains words which were more likely drawn from topic 0.  We can now simply run TopicMapping on the sub-corpus (\textbf{./bin/topicmap -f sub\_corpus.txt -o sub\_results}). The file \textbf{doc\_list.txt} reports the original ids of the documents which appear in the sub-corpus.
 
 
-\end{enumerate}
+\section{Parallelizing (beta)}
+
+We also provide a simple python script to parallelize the part of the program which builds the network. Try:
+
+\textbf{python Sources/py\_utils/run\_parallel\_signet.py quantum-and-granular-large-stemmed}
+
+and follows the instructions to run TopicMapping after this.
+
+There is also a script to parallelize the LDA optimization. To use it, you first need to run TopicMapping with option \textbf{-skip\_lda}, which just provides the file \textbf{plsa\_betas\_sparse.txt}.  After that, try:
+
+\textbf{python Sources/py\_utils/run\_parallel\_lda.py},
+
+where \textbf{[intial\_model]} should be the path to the file \textbf{plsa\_betas\_sparse.txt}.
+
+
+
+
 
 
 \section{Acknowledgments}
 
-TopicMapping is using some of the code which implements the original Infomap [1] and this code was written by Martin Rosvall.
+TopicMapping re-uses some of the code which implements the original Infomap [1]. The LDA likelihood optimization code closely follows the 
+original code by David Blei [2].
 Xiaohan Zeng curated the stemming algorithm. David Mertens compiled the corpus ``\textit{quantum-and-granular-large-stemmed}" pulling abstracts about ``quantum computing" and ``transitions in granular systems". 
 All the rest was developed by Andrea Lancichinetti.
 
@@ -313,23 +238,25 @@ All the rest was developed by Andrea Lancichinetti.
 %
 %
 
-
 \section{References}
 
 
-Infomap paper:
-
 \vskip0.3cm
 
-[1] M. Rosvall and    C. T. Bergstrom, Proc. Natl. Acad. Sci. U.S.A {\bf 105}, 1118 (2008).
+\noindent [1] M. Rosvall and  C. T. Bergstrom, Proc. Natl. Acad. Sci. U.S.A {\bf 105}, 1118 (2008).
 
 \vskip0.3cm
+\noindent [2] D. Blei, A. Y. Ng, and M. I. Jordan,  The Journal of Machine Learning Research 3 (2003): 993-1022.
 
-\noindent If you used this program for your research, please cite:
+
 
 \vskip0.3cm
+\vskip0.3cm
+If you used this program for your research, please cite:
 
-[2] A high-reproducibility and high-accuracy method for automated topic classification. (to be published)
+\noindent [3] A high-reproducibility and high-accuracy method for automated topic classification. (to be published)
+
+\vskip0.3cm
 
 
 
