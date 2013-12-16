@@ -42,8 +42,8 @@ replaced_file=open('./Sources/TopicMapping/docmap_tmp.cpp', 'w')
 
 # asserting that there no empty spaces (Infomap's call would not work)
 if len(infomap_path.split())!=1:
-    print 'error with directory name', cur_dir
-    print 'please remove empty spaces from directory name and compile again'
+    print '\n\nERROR with directory name', cur_dir
+    print 'PLEASE REMOVE EMPTY SPACES from directory name and compile again'
     exit(-1)
 
 for l in open(original_file):
@@ -66,7 +66,7 @@ print 'Since topicmap calls:'
 print infomap_path
 print 'renaming the executables breaks the code.'
 print 'If you are not happy with the current location,'
-print 'please move the entire folder "topicmapping" to the desired location',
+print 'please move the entire current folder to the desired location',
 print 'and run this script again.'
 
 
