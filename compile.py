@@ -40,6 +40,11 @@ original_file='./Sources/TopicMapping/docmap.cpp'
 
 replaced_file=open('./Sources/TopicMapping/docmap_tmp.cpp', 'w')
 
+if len(infomap_path.split()!=1):
+    print 'error with directory name', cur_dir
+    print 'please remove empty spaces from directory name and compile again'
+    exit(-1)
+
 for l in open(original_file):
     replaced_file.write(l.replace('"___INSERT_INFOMAP_PATH_HERE___"', '"'+infomap_path+'"'))
 replaced_file.close()
