@@ -7,7 +7,7 @@ cur_dir= os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())
 print cur_dir, '<<'
 
 print 'compiling Infomap'
-os.chdir('./Sources/Infomap-0.11.5/')
+os.chdir('./Sources/Infomap-0.15.7/')
 os.system('make clean')
 os.system('make')
 if os.path.isfile('Infomap') == False:
@@ -26,7 +26,7 @@ os.chdir('../..')
 #os.system('pwd')
 os.system('rm -r bin/')
 os.system('mkdir bin')
-os.system('mv ./Sources/Infomap-0.11.5/Infomap bin/Infomap')
+os.system('mv ./Sources/Infomap-0.15.7/Infomap bin/Infomap')
 
 
 print 'compiling alpha_optimization'
