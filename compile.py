@@ -10,6 +10,15 @@ print 'compiling Infomap'
 os.chdir('./Sources/Infomap-0.11.5/')
 os.system('make clean')
 os.system('make')
+if os.path.isfile('Infomap') == False:
+    print 'Infomap was not compiled. Trying again...'
+    os.system('make clean')
+    os.system('make noomp')
+if os.path.isfile('Infomap') == False:
+    print 'Infomap did not compile.'
+    print 'Please contact me: arg.lanci@gmail.com'
+    exit()
+
 #print 'leaving directory: ',
 #os.system('pwd')
 os.chdir('../..')
